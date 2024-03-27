@@ -1,1 +1,6 @@
 askme_venv
+Lib
+Scripts
+Include
+db.sqlite3
+**.pyc

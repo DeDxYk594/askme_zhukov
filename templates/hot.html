@@ -1,0 +1,10 @@
+{% extends 'layouts/base.html' %} {% block content %}
+<div class="col-8">
+  <div class="d-flex gap-3 align-items-center">
+    <h1>Hot Questions</h1>
+    <a href="/"><h5>New questions</h5></a>
+  </div>
+  {% for d in questions %} {% include "layouts/question.html" with item=d %} {% endfor %}
+  
+</div>
+{% endblock %}
