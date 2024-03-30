@@ -4,3 +4,4 @@ Scripts
 Include
 db.sqlite3
 **.pyc
+.vscode
