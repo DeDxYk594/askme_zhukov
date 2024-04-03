@@ -1,0 +1,46 @@
+
+{% extends 'layouts/base.html' %} {% block content %} {% load static %}
+<h1>Settings: Dr. Pepper</h1>
+<div class="container">
+  <div class="row mb-3">
+    <div class="col-3">
+      Login
+    </div>
+    <div class="col-9">
+      <input type="text" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-3">
+      Email
+    </div>
+    <div class="col-9">
+      <input type="text" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-3">
+      NickName
+    </div>
+    <div class="col-9">
+      <input type="text" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-3">
+      Upload avatar
+    </div>
+    <div class="col-9 d-flex flex-column">
+      <img src="{% static 'img' %}/president.jpg" width="200"/>
+      <input type="file" />
+    </div>
+  </div>
+
+  <div class="row">
+    <button>Save!</button>
+  </div>
+</div>
+{% endblock %}

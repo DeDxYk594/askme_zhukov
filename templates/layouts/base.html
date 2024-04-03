@@ -55,36 +55,15 @@
         <div class="col-3 d-flex flex-column" style="max-width: 30%">
           <h1>Popular Tags</h1>
           <div class="d-flex gap-3 flex-column">
-            <a href="/tag.html" class="text-primary" style="white-space: nowrap"
-              >Чай</a
-            >
-            <a
-              href="/tag.html"
-              class="text-secondary"
-              style="white-space: nowrap"
-              >Кофе</a
-            >
-            <a href="/tag.html" class="text-success" style="white-space: nowrap"
-              >Бауманка</a
-            >
-            <a href="/tag.html" class="text-danger" style="white-space: nowrap"
-              >Кто прочитал</a
-            >
-            <a href="/tag.html" class="text-warning" style="white-space: nowrap"
-              >Тот</a
-            >
-            <a href="/tag.html" class="text-info" style="white-space: nowrap"
-              >Кафедра РК6 САПР</a
-            >
+            {% for tag in popular_tags %}
+            <a href="{% url 'tag' tag.id %}" class="text-{{ tag.color }}" style="white-space: nowrap">{{ tag.text }}</a>
+            {% endfor %}
           </div>
           <h1 style="padding-top: 40px">Best Members</h1>
           <div class="d-flex gap-3 flex-column">
-            <a href="/tag.html" style="white-space: nowrap">Freeman228</a>
-            <a href="/tag.html" style="white-space: nowrap">_KiLlEr_2009</a>
-            <a href="/tag.html" style="white-space: nowrap">Iosif1945</a>
-            <a href="/tag.html" style="white-space: nowrap">Volosatova_RK6</a>
-            <a href="/tag.html" style="white-space: nowrap">RandomMember</a>
-            <a href="/tag.html" style="white-space: nowrap">sdfdfsdffs</a>
+            {% for member in best_members %}
+            <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" style="white-space: nowrap">{{member.name}}</a>
+            {% endfor %}
           </div>
         </div>
       </div>

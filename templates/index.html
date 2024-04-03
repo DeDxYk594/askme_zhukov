@@ -1,26 +1,12 @@
-{% extends 'layouts/base.html' %} {% block content %}
-<div class="col-8">
+{% extends 'layouts/base.html' %} 
+
+{% block content %}
   <div class="d-flex gap-3 align-items-center">
-    <h1>New Questions</h1>
-    <a href="/hot.html"><h5>Hot questions</h5></a>
+    <h1>{{title}}</h1>
+    <a href="{% url 'hot' %}"><h5>Hot questions</h5></a>
   </div>
   {% for d in questions %}
-    {% include "layouts/question.html" with item=d %}
+    {% include "layouts/question_card.html" with item=d %}
   {% endfor %}
-  <div>
-    <nav aria-label="...">
-      <ul class="pagination">
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item active">
-          <a class="page-link" href="#">2 </a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item disabled">
-          <a class="page-link" href="#">...</a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">53</a></li>
-      </ul>
-    </nav>
-  </div>
-</div>
+  {% include 'layouts/pagination.html' %}
 {% endblock %}

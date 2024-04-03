@@ -2,15 +2,17 @@
 <div>
   <nav aria-label="...">
     <ul class="pagination">
-      <li class="page-item"><a class="page-link" href="#">1</a></li>
-      <li class="page-item active">
-        <a class="page-link" href="#">2 </a>
-      </li>
-      <li class="page-item"><a class="page-link" href="#">3</a></li>
-      <li class="page-item disabled">
-        <a class="page-link" href="#">...</a>
-      </li>
-      <li class="page-item"><a class="page-link" href="#">53</a></li>
+      {% for page in pagination %}
+        {% if page == current_page %}
+        <li class="page-item active">
+          <a class="page-link" href="{% url 'index' %}?page={{ page }}">{{ page }} </a>
+        </li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link" href="{% url 'index' %}?page={{ page }}">{{ page }} </a>
+        </li>
+        {% endif %}
+      {% endfor %}
     </ul>
   </nav>
 </div>
