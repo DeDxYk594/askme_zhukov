@@ -124,6 +124,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Специфичные для конкретного сервака ынастройки
 try:
-    from local_settings import *  # noqa: F403
+    from .local_settings import *  # noqa: F403
 except ImportError:
     pass
