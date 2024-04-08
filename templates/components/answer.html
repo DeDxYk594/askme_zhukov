@@ -1,0 +1,21 @@
+{% load static %}
+<div class="card w-100">
+  <div class="card-body d-flex flex-row">
+    <div class="mr-5">
+      <img
+        src="{% static 'img' %}/{{ answer.user.avatar }}"
+        style="max-width: 150px; max-height: 150px"
+        alt="..."
+      />
+      <div class="input-group flex-nowrap">
+        <input type="number" value="5" style="max-width: 100%" class="form-control" />
+      </div>
+    </div>
+    <div>
+      <h5 class="card-title">
+        {{ answer.user.name }}
+      </h5>
+      <p class="card-text">{{ answer.text }}</p>
+    </div>
+  </div>
+</div>

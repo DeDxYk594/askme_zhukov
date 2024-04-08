@@ -6,7 +6,7 @@
     <a href="{% url 'hot' %}"><h5>Hot questions</h5></a>
   </div>
   {% for d in questions %}
-    {% include "layouts/question_card.html" with item=d %}
+    {% include "components/question_card.html" with item=d %}
   {% endfor %}
-  {% include 'layouts/pagination.html' %}
+  {% include 'components/pagination.html' %}
 {% endblock %}

@@ -1,0 +1,34 @@
+{% load static %}
+<nav>
+  <div class="navbar py-1 d-flex position-fixed flex-row justify-content-between bg-body-tertiary px-4 w-100" 
+  style="z-index:4; --webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); --bs-bg-opacity:0.6; 
+  border-bottom:2px solid #bbbbbb; height:65px">
+    <div class="d-flex flex-row justify-content-between">
+      <div class="d-flex flex-row gap-10">
+        <a class="navbar-brand" href="{% url 'index' %}"><b><h2>AskPupkin</h2></b></a>
+      </div>
+    </div>
+    <div class="justify-content-between d-flex flex-row gap-5">
+      <button class="btn btn-success" href="{% url 'ask' %}"><i class="bi-question-circle"></i> Ask!</button>
+      <form class="d-flex flex-row flex-grow-0" role="search">
+          <input
+          class="form-control me-2" type="search"
+          placeholder="Search" aria-label="Search"/>
+          <button class="btn btn-outline-primary" type="submit"><h6><i class="bi-search"></i></h6></button>
+      </form>
+    </div>
+    <div class="d-flex flex-row account">
+      <div class="me-3">
+        <img class="rounded-pill border" src="{% static 'img' %}/1.jpg" width="50" height="50" />
+      </div>
+      <div class="d-flex flex-column justify-content-between">
+        <div>Dr. Pepper</div>
+        <div class="d-flex flex-row gap-3">
+          <div><a style="text-decoration:none" href="{% url 'settings' %}"><i class="bi-gear-wide"></i> Settings</a></div>
+          <div><a style="text-decoration:none" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"><i class="bi-box-arrow-right"></i> Logout</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="height:90px"></div>
+</nav>

@@ -2,9 +2,9 @@
 
 {% block content %}
   <div class="d-flex flex-column align-left gap-3 align-items-center">
-    {% include "layouts/question.html" with item=question %}
+    {% include "components/question.html" with item=question %}
     {% for answer in question.answers %}
-      {% include "layouts/answer.html" %}
+      {% include "components/answer.html" %}
     {% endfor %}
   </div>
 {% endblock %}
