@@ -2,8 +2,17 @@
 
 {% block content %}
   <div class="d-flex gap-3 align-items-center">
-    <h1>{{title}}</h1>
-    <a href="{% url 'hot' %}"><h5>Hot questions</h5></a>
+    {% if hot %}
+    <h1>Hot Questions</h1>
+    <a href="{% url 'hot' %}"><h5>{% url 'index' %}</h5></a>
+    {% else %}
+    {% if search %}
+    <h1>{{ title }}</h1>
+    {% else %}
+    <h1>New Questions</h1>
+    <a href="{% url 'hot' %}"><h5>Hot Questions</h5></a>
+    {% endif %}
+    {% endif %}
   </div>
   {% for d in questions %}
     {% include "components/question_card.html" with item=d %}

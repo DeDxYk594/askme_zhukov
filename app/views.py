@@ -2,9 +2,21 @@ from ast import Dict
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse
 from django.core.paginator import Paginator
+from django.views.generic import TemplateView
 from math import ceil
 
 from . import mock
+
+common = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
+
+class AskmeView(TemplateView):
+    def get_context_data(self, **kwargs) -> dict:
+        context = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
+        context.update(self.get_page_data(**kwargs))
+        return context
+
+    def get_page_data(self, **kwargs) -> dict:
+        return {}
 
 
 def paginate(data: list, pageNumber: int, dataPerPage: int = 5) -> tuple[list, list]:
@@ -31,7 +43,23 @@ def paginate(data: list, pageNumber: int, dataPerPage: int = 5) -> tuple[list, l
     return (retData, pagData)
 
 
-common = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
+class IndexView(AskmeView):
+    template_name = "index.html"
+
+    def get_page_data(self, **kwargs) -> dict:
+        page_num = int(self.request.GET.get("page", 1))
+        questions, pagination = paginate(mock.QUESTIONS, page_num, 2)
+
+        for q in questions:
+            for a in q["answers"]:
+                a["user"] = mock.USERS[a["user_id"]]
+        return {
+            "questions": questions,
+            "pagination": pagination,
+            "current_page": page_num,
+            "title": "New Questions",
+            "hot":False,
+        }
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -52,9 +80,9 @@ def index(request: HttpRequest) -> HttpResponse:
                 "questions": questions,
                 "pagination": pagination,
                 "current_page": page_num,
-                "title":"New Questions",
+                "title": "New Questions",
             },
-            **common
+            **common,
         ),
     )
 
@@ -78,15 +106,14 @@ def tag(request: HttpRequest, tag_id: str) -> HttpResponse:
                 "questions": questions,
                 "pagination": pagination,
                 "current_page": page_num,
-                "title":f"Questions with tag {tag_id}",
+                "title": f"Questions with tag {tag_id}",
             },
-            **common
+            **common,
         ),
     )
 
 
 def hot(request: HttpRequest) -> HttpResponse:
-
     return render(request, "hot.html", {"questions": reversed(mock.QUESTIONS)})
 
 
