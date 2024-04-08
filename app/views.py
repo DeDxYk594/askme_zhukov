@@ -48,7 +48,7 @@ class IndexView(AskmeView):
 
     def get_page_data(self, **kwargs) -> dict:
         page_num = int(self.request.GET.get("page", 1))
-        questions, pagination = paginate(mock.QUESTIONS, page_num, 2)
+        questions, pagination = paginate(mock.QUESTIONS, page_num, 5)
 
         for q in questions:
             for a in q["answers"]:
