@@ -1,14 +1,14 @@
 {% load static %}
 <div class="card mb-3 me-5 d-flex flex-row justify-content-between">
 
-  <div class="d-flex flex-column gap-2 align-items-center" style="width:25%">
+  <div class="d-flex flex-column gap-2 align-items-begin ms-2" style="width:25%">
     <img class="m-2 rounded" src="{% static 'img' %}/{{ item.image }}" style="max-width:90%; object-fit:cover" />
   </div>
 
   <div class="d-flex flex-column justify-content-between mt-1" style="width:55%">
     <div class="flex-grow-1">
       <h3 class="card-title mb-4">
-        <a href="{% url 'question' item.id %}">{{ item.title }}</a>
+        <a href="{% url 'question' item.id %}" style="text-decoration:none">{{ item.title }}</a>
       </h3>
       <p class="card-text">{{ item.text }}</p>
     </div>
@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <div class="d-flex flex-column align-items-end justify-content-around mb-2" style="width:15%; margin-right:15px">
+  <div class="d-flex flex-column align-items-end justify-content-between gap-2 my-2" style="width:15%; margin-right:15px">
     {% include 'components/user_card.html' %}
     {% include 'components/rating.html' %}
   </div>

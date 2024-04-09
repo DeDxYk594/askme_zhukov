@@ -1,6 +1,6 @@
-from ast import Dict
+from typing import Any
 from django.shortcuts import render
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.core.paginator import Paginator
 from django.views.generic import TemplateView
 from math import ceil
@@ -9,132 +9,140 @@ from . import mock
 
 common = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
 
+
 class AskmeView(TemplateView):
     def get_context_data(self, **kwargs) -> dict:
         context = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
-        context.update(self.get_page_data(**kwargs))
         return context
 
-    def get_page_data(self, **kwargs) -> dict:
-        return {}
 
-
-def paginate(data: list, pageNumber: int, dataPerPage: int = 5) -> tuple[list, list]:
-    """Пагинация. Начальная страница - 1.
-    @returns ([...данные к отображению], [2,3,4,5,6,7,8,9])"""
-    totalPages = ceil(len(data) / dataPerPage)
-    retData = data[dataPerPage * (pageNumber - 1) : dataPerPage * pageNumber]
+def paginate(data, pageNumber: int, dataPerPage: int = 5) -> tuple[list, list]:
+    """Пагинация. Начальная страница - 1"""
+    pg = Paginator(data, dataPerPage)
     pagPrev = 3
     pagData = []
     if pageNumber > pagPrev + 1:
-        pagData.append(1)
+        pagData.append({"pageNum": 1, "text": "1"})
+        pagData.append({"pageNum": 0, "text": "..."})
         pagPrev -= 1
     for i in range(pageNumber - pagPrev, pageNumber):
         if i > 0:
-            pagData.append(i)
-    pagData.append(pageNumber)
+            pagData.append({"pageNum": i, "text": f"{i}"})
+    pagData.append({"pageNum": pageNumber, "text": f"{pageNumber}"})
     pagPost = 3
     for i in range(pageNumber + 1, pageNumber + 1 + pagPost):
-        if i <= totalPages:
-            pagData.append(i)
-    if totalPages - pageNumber > pagPost + 1:
-        pagData[-1] = totalPages
-    print(pagData)
-    return (retData, pagData)
+        if i <= pg.num_pages:
+            pagData.append({"pageNum": i, "text": f"{i}"})
+    if pg.num_pages - pageNumber > pagPost:
+        pagData[-1]["pageNum"] = pg.num_pages
+        pagData[-1]["text"] = str(pg.num_pages)
+        pagData.insert(-1, {"pageNum": 0, "text": "..."})
+    return (pg.get_page(pageNumber), pagData)
 
 
 class IndexView(AskmeView):
     template_name = "index.html"
 
-    def get_page_data(self, **kwargs) -> dict:
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        try:
+            page_num = int(self.request.GET.get("page", 1))
+        except Exception:
+            page_num = 1
+        questions, pagination = paginate(mock.QUESTIONS, page_num, 1)
+
+        for q in questions:
+            for a in q["answers"]:
+                a["user"] = mock.USERS[a["user_id"]]
+        context.update(
+            {
+                "questions": questions,
+                "pagination": pagination,
+                "current_page": page_num,
+                "title": "New Questions",
+                "hot": False,
+            }
+        )
+        return context
+
+
+class HotView(AskmeView):
+    template_name = "index.html"
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
         page_num = int(self.request.GET.get("page", 1))
         questions, pagination = paginate(mock.QUESTIONS, page_num, 5)
 
         for q in questions:
             for a in q["answers"]:
                 a["user"] = mock.USERS[a["user_id"]]
-        return {
-            "questions": questions,
-            "pagination": pagination,
-            "current_page": page_num,
-            "title": "New Questions",
-            "hot":False,
-        }
-
-
-def index(request: HttpRequest) -> HttpResponse:
-    page_num = int(request.GET.get("page", 1))
-    questions, pagination = paginate(mock.QUESTIONS, page_num, 2)
-
-    for q in questions:
-        for a in q["answers"]:
-            a["user"] = mock.USERS[a["user_id"]]
-    print(questions)
-    print("12345")
-
-    return render(
-        request,
-        "index.html",
-        dict(
+        context.update(
             {
-                "questions": questions,
+                "questions": list(reversed(questions)),
                 "pagination": pagination,
                 "current_page": page_num,
                 "title": "New Questions",
-            },
-            **common,
-        ),
-    )
+                "hot": True,
+            }
+        )
+        return context
 
 
-def tag(request: HttpRequest, tag_id: str) -> HttpResponse:
-    page_num = int(request.GET.get("page", 1))
-    qs = [q for q in mock.QUESTIONS if tag_id in q["tags"]]
-    questions, pagination = paginate(mock.QUESTIONS, page_num, 2)
+class TagView(AskmeView):
+    template_name = "index.html"
 
-    for q in questions:
-        for a in q["answers"]:
-            a["user"] = mock.USERS[a["user_id"]]
-    print(questions)
-    print("12345")
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        page_num = int(self.request.GET.get("page", 1))
+        try:
+            tag_id = self.kwargs["tag_id"]
+        except Exception:
+            raise Http404
 
-    return render(
-        request,
-        "index.html",
-        dict(
+        qs = [q for q in mock.QUESTIONS if tag_id in q["tags"]]
+        questions, pagination = paginate(qs, page_num, 5)
+
+        for q in questions:
+            for a in q["answers"]:
+                a["user"] = mock.USERS[a["user_id"]]
+        context.update(
             {
-                "questions": questions,
+                "questions": list(reversed(questions)),
                 "pagination": pagination,
                 "current_page": page_num,
-                "title": f"Questions with tag {tag_id}",
-            },
-            **common,
-        ),
-    )
+                "title": f"Search: tag={tag_id}",
+                "hot": False,
+                "search": True,
+            }
+        )
+        return context
 
 
-def hot(request: HttpRequest) -> HttpResponse:
-    return render(request, "hot.html", {"questions": reversed(mock.QUESTIONS)})
+class QuestionView(AskmeView):
+    template_name = "question.html"
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        question_id = self.kwargs["question_id"]
+        context = super().get_context_data(**kwargs)
+        q = mock.QUESTIONS[question_id - 1]
+        for a in q["answers"]:
+            a["user"] = mock.USERS[a["user_id"]]
+        context.update({"question": q})
+        return context
 
 
-def question(request: HttpRequest, question_id) -> HttpResponse:
-    q = mock.QUESTIONS[question_id - 1]
-    for a in q["answers"]:
-        a["user"] = mock.USERS[a["user_id"]]
-    return render(request, "question.html", dict({"question": q}, **common))
+class SettingsView(AskmeView):
+    template_name = "settings.html"
 
 
-def settings(request: HttpRequest) -> HttpResponse:
-    return render(request, "settings.html", dict({}, **common))
+class RegisterView(AskmeView):
+    template_name = "register.html"
 
 
-def register(request: HttpRequest) -> HttpResponse:
-    return render(request, "register.html", dict({}, **common))
+class LoginView(AskmeView):
+    template_name = "login.html"
 
 
-def login(request: HttpRequest) -> HttpResponse:
-    return render(request, "login.html", dict({}, **common))
-
-
-def ask(request: HttpRequest) -> HttpResponse:
-    return render(request, "ask.html", dict({}, **common))
+class AskView(AskmeView):
+    template_name = "ask.html"

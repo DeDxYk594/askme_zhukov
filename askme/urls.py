@@ -1,7 +1,8 @@
-from django.urls import path
+from django.urls import path, include
 
-from app import urls
+import app.urls
+
 
 urlpatterns = [
-    
-]+urls.urlpatterns
+    path("", include(app.urls)),
+]
