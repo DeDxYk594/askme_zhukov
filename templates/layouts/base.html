@@ -21,7 +21,7 @@
           <h1>Popular Tags</h1>
           <div class="d-flex gap-3 flex-column">
             {% for tag in popular_tags %}
-            <a href="{% url 'tag' tag.id %}" class="text-{{ tag.color }}" style="white-space: nowrap">{{ tag.text }}</a>
+            <a href="{% url 'tag' tag.slug %}" class="text-{{ tag.color }}" style="white-space: nowrap">{{ tag.display_name }}</a>
             {% endfor %}
           </div>
           <h1 style="padding-top: 40px">Best Members</h1>

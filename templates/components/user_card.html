@@ -1,17 +1,18 @@
 {% load static %}
+{% load mathfilters %}
 <div class="card" style="width:fit-content">
   <div class="card-body p-2 pb-3 align-items-center justify-content-center d-flex flex-column">
     <div>
-      <img class="rounded-pill border" src="{% static 'img' %}/1.jpg" width="50" height="50" />
+      <img class="rounded-pill border" src="{% static 'img' %}/{{ user.avatar_path }}" width="50" height="50" />
     </div>
-    <h5>Dr. Pepper</h5>
+    <h5>{{ user.django_user.username }}</h5>
     <div class="d-flex flex-row gap-4 mx-1 align-items-center">
       <div style="cursor:pointer"><h5><i class="bi-caret-up">  </i></h5></div>
-      <div class="d-flex justify-content-center"><h5>5</h5></div>
+      <div class="d-flex justify-content-center"><h5>{{ user.rating_likes | sub:user.rating_dislikes }}</h5></div>
       <div style="cursor:pointer"><h5><i class="bi-caret-down"></i></h5></div>
     </div>
     <div class="border rounded-pill" style="height:7px;width:100%;overflow:clip">
-      <div class="bg-black " style="height:5px;width:30%"></div>
+      <div class="bg-black " style="height:5px;width:{% widthratio user.rating_likes user.rating_likes|add:user.rating_dislikes 100 %}%"></div>
     </div>
   </div>
 </div>

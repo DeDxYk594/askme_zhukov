@@ -3,8 +3,24 @@
 {% block content %}
   <div class="d-flex flex-column align-left gap-3 align-items-center">
     {% include "components/question.html" with item=question %}
-    {% for answer in question.answers %}
-      {% include "components/answer.html" %}
+    {% for answer in answers %}
+      {% include "components/answer.html" with likes_count=answer.likes_count dislikes_count=answer.dislikes_count %}
     {% endfor %}
+    {% include 'components/pagination_for_answers.html' %}
+    <div class="container">
+      <div class="row">
+        <div class="col-2">
+          <p>Your answer:</p>
+        </div>
+        <div class="col-8">
+          <textarea class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-2">
+          <button class="btn btn-success"><i class="bi-check-lg"></i>Post!</button>
+        </div>
+      </div>
+    </div>
   </div>
 {% endblock %}

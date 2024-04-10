@@ -4,6 +4,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.core.paginator import Paginator
 from django.views.generic import TemplateView
 from math import ceil
+from .models import Question, Answer, User, Tag
 
 from . import mock
 
@@ -12,13 +13,22 @@ common = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
 
 class AskmeView(TemplateView):
     def get_context_data(self, **kwargs) -> dict:
-        context = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
+        popular_tags = Tag.objects.with_question_count()[:5]
+        best_members = User.objects.all()[:5]
+        context = {"popular_tags": popular_tags, "best_members": best_members}
         return context
 
 
 def paginate(data, pageNumber: int, dataPerPage: int = 5) -> tuple[list, list]:
     """Пагинация. Начальная страница - 1"""
+    try:
+        pageNumber = int(pageNumber)
+    except Exception:
+        pageNumber = 1
     pg = Paginator(data, dataPerPage)
+
+    if pageNumber > pg.num_pages:
+        pageNumber = pg.num_pages
     pagPrev = 3
     pagData = []
     if pageNumber > pagPrev + 1:
@@ -45,15 +55,13 @@ class IndexView(AskmeView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        try:
-            page_num = int(self.request.GET.get("page", 1))
-        except Exception:
-            page_num = 1
-        questions, pagination = paginate(mock.QUESTIONS, page_num, 1)
 
-        for q in questions:
-            for a in q["answers"]:
-                a["user"] = mock.USERS[a["user_id"]]
+        page_num = self.request.GET.get("page", 1)
+
+        q = Question.objects.with_num_answers_and_rating()
+
+        questions, pagination = paginate(q, page_num, 10)
+
         context.update(
             {
                 "questions": questions,
@@ -69,24 +77,7 @@ class IndexView(AskmeView):
 class HotView(AskmeView):
     template_name = "index.html"
 
-    def get_context_data(self, **kwargs) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        page_num = int(self.request.GET.get("page", 1))
-        questions, pagination = paginate(mock.QUESTIONS, page_num, 5)
-
-        for q in questions:
-            for a in q["answers"]:
-                a["user"] = mock.USERS[a["user_id"]]
-        context.update(
-            {
-                "questions": list(reversed(questions)),
-                "pagination": pagination,
-                "current_page": page_num,
-                "title": "New Questions",
-                "hot": True,
-            }
-        )
-        return context
+    # TODO
 
 
 class TagView(AskmeView):
@@ -94,7 +85,7 @@ class TagView(AskmeView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        page_num = int(self.request.GET.get("page", 1))
+        page_num = self.request.GET.get("page", 1)
         try:
             tag_id = self.kwargs["tag_id"]
         except Exception:
@@ -123,12 +114,23 @@ class QuestionView(AskmeView):
     template_name = "question.html"
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
-        question_id = self.kwargs["question_id"]
         context = super().get_context_data(**kwargs)
-        q = mock.QUESTIONS[question_id - 1]
-        for a in q["answers"]:
-            a["user"] = mock.USERS[a["user_id"]]
-        context.update({"question": q})
+        question_id = self.kwargs["question_id"]
+        try:
+            q = Question.objects.one_with_rating(int(question_id))
+        except Exception:
+            raise Http404
+        answers = Answer.objects.answers_for_question(q)
+        page_obj, pagination = paginate(answers, self.request.GET.get("page", 1), 5)
+        context.update(
+            {
+                "question": q,
+                "answers": page_obj,
+                "pagination": pagination,
+                "question_id": int(question_id),
+                "current_page": int(self.request.GET.get("page", 1)),
+            }
+        )
         return context
 
 

@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "app",
+    "mathfilters",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -70,16 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "askme.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# База данных подключается из local_settings.py
 
 
 # Password validation
@@ -124,7 +116,8 @@ STATICFILES_DIRS = ["static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Специфичные для конкретного сервака ынастройки
+# Специфичные для конкретного сервака настройки
+# По ним лежит БДшка
 try:
     from .local_settings import *  # noqa: F403
 except ImportError:

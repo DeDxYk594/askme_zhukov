@@ -2,7 +2,7 @@
 <div class="card mb-3 me-5 d-flex flex-row justify-content-between">
 
   <div class="d-flex flex-column gap-2 align-items-begin ms-2" style="width:25%">
-    <img class="m-2 rounded" src="{% static 'img' %}/{{ item.image }}" style="max-width:90%; object-fit:cover" />
+    <img class="m-2 rounded" src="{% static 'img' %}/{{ item.image_path }}" style="max-width:90%; object-fit:cover" />
   </div>
 
   <div class="d-flex flex-column justify-content-between mt-1" style="width:55%">
@@ -14,9 +14,9 @@
     </div>
     <div class="d-flex flex-row justify-content-between my-3">
       <div class="d-flex align-items-end">
-        <a href="{% url 'question' item.id %}">
-          {% if item.answers %}
-          Answers ({{ item.answers|length }})
+        <a href="{% url 'question' item.pk %}">
+          {% if item.answers_count %}
+          Answers ({{ item.answers_count }})
           {% else %}
           No answers yet!
           {% endif %}
@@ -26,8 +26,8 @@
         <span>Tags:</span>
         {% if item.tags %}
         <div>
-          {% for tag in item.tags %}
-          <a href="{% url 'tag' tag %}" class="badge text-bg-secondary">{{tag}}</a>
+          {% for tag in item.tags.all %}
+          <a href="{% url 'tag' tag.slug %}" class="badge text-bg-secondary">{{tag.display_name}}</a>
           {% endfor %}
         </div>
         {% else %}
@@ -40,8 +40,8 @@
   </div>
 
   <div class="d-flex flex-column align-items-end justify-content-between gap-2 my-2" style="width:15%; margin-right:15px">
-    {% include 'components/user_card.html' %}
-    {% include 'components/rating.html' %}
+    {% include 'components/user_card.html' with user=item.user_author %}
+    {% include 'components/rating.html' with likes_count=item.likes_count dislikes_count=item.dislikes_count %}
   </div>
 
 </div>
