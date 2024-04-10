@@ -19,10 +19,12 @@ class AskmeView(TemplateView):
         return context
 
 
-def paginate(data, pageNumber: int, dataPerPage: int = 5) -> tuple[list, list]:
+def paginate(
+    data, request: HttpRequest, dataPerPage: int = 5
+) -> tuple[list, list, int]:
     """Пагинация. Начальная страница - 1"""
     try:
-        pageNumber = int(pageNumber)
+        pageNumber = int(request.GET.get("page"))
     except Exception:
         pageNumber = 1
     pg = Paginator(data, dataPerPage)
@@ -47,7 +49,7 @@ def paginate(data, pageNumber: int, dataPerPage: int = 5) -> tuple[list, list]:
         pagData[-1]["pageNum"] = pg.num_pages
         pagData[-1]["text"] = str(pg.num_pages)
         pagData.insert(-1, {"pageNum": 0, "text": "..."})
-    return (pg.get_page(pageNumber), pagData)
+    return (pg.get_page(pageNumber), pagData, pageNumber)
 
 
 class IndexView(AskmeView):
@@ -56,17 +58,15 @@ class IndexView(AskmeView):
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        page_num = self.request.GET.get("page", 1)
-
         q = Question.objects.with_num_answers_and_rating()
 
-        questions, pagination = paginate(q, page_num, 10)
+        questions, pagination,page = paginate(q, self.request, 10)
 
         context.update(
             {
                 "questions": questions,
                 "pagination": pagination,
-                "current_page": page_num,
+                "current_page": page,
                 "title": "New Questions",
                 "hot": False,
             }
@@ -85,14 +85,13 @@ class TagView(AskmeView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        page_num = self.request.GET.get("page", 1)
         try:
             tag_id = self.kwargs["tag_id"]
         except Exception:
             raise Http404
 
         qs = [q for q in mock.QUESTIONS if tag_id in q["tags"]]
-        questions, pagination = paginate(qs, page_num, 5)
+        questions, pagination, page = paginate(qs, self.request, 5)
 
         for q in questions:
             for a in q["answers"]:
@@ -101,7 +100,7 @@ class TagView(AskmeView):
             {
                 "questions": list(reversed(questions)),
                 "pagination": pagination,
-                "current_page": page_num,
+                "current_page": page,
                 "title": f"Search: tag={tag_id}",
                 "hot": False,
                 "search": True,
@@ -121,14 +120,14 @@ class QuestionView(AskmeView):
         except Exception:
             raise Http404
         answers = Answer.objects.answers_for_question(q)
-        page_obj, pagination = paginate(answers, self.request.GET.get("page", 1), 5)
+        page_obj, pagination, page = paginate(answers, self.request, 5)
         context.update(
             {
                 "question": q,
                 "answers": page_obj,
                 "pagination": pagination,
                 "question_id": int(question_id),
-                "current_page": int(self.request.GET.get("page", 1)),
+                "current_page": page,
             }
         )
         return context
