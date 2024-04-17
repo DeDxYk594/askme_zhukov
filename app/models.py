@@ -46,9 +46,11 @@ class QuestionManager(models.Manager):
                 )
             ),
         )
-    
+
     def hots(self):
-        return self.with_num_answers_and_rating().order_by('-(likes_count+dislikes_count)')
+        return self.with_num_answers_and_rating().order_by(
+            "-(likes_count+dislikes_count)"
+        )
 
     def one_with_rating(self, pk):
         return self.annotate(
@@ -91,8 +93,8 @@ class AnswerManager(models.Manager):
 
 class Tag(models.Model):
     objects = TagManager()
-    slug = models.TextField(max_length=20)
-    display_name = models.TextField(max_length=100)
+    slug = models.SlugField(max_length=200, unique=True)
+    title = models.TextField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -115,7 +117,7 @@ class User(models.Model):
 class Question(models.Model):
     objects = QuestionManager()
     user_author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    tags = models.ManyToManyField(Tag, null=True)
+    tags = models.ManyToManyField(Tag)
     title = models.TextField(max_length=200)
     text = models.TextField(max_length=2000)
     image_path = models.TextField(max_length=300)  # TODO Сделать ImageField

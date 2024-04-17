@@ -55,7 +55,7 @@ If ratio <= 50, there can be less freakin data created
         print("Start generate those django users...")
         django_users = [
             django.contrib.auth.models.User(
-                email=faker_buddy.email(), username=faker_buddy.user_name() + str(_)
+                email=faker_buddy.email(), username=faker_buddy.user_name()+faker_buddy.user_name() + str(_)
             )
             for _ in tqdm(range(ratio))
         ]
@@ -76,7 +76,7 @@ If ratio <= 50, there can be less freakin data created
         print("Start generate those tags (not django, but our users)...")
         tags_per_post = 3
         tags = [
-            Tag(name_id=faker_buddy.user_name(), display_name=faker_buddy.name())
+            Tag(slug=faker_buddy.user_name()+faker_buddy.user_name()+faker_buddy.user_name(), title=faker_buddy.name())
             for ____ in tqdm(range(ratio))
         ]
 
