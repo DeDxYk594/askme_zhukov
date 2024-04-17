@@ -60,7 +60,7 @@ class IndexView(AskmeView):
 
         q = Question.objects.with_num_answers_and_rating()
 
-        questions, pagination,page = paginate(q, self.request, 10)
+        questions, pagination, page = paginate(q, self.request, 10)
 
         context.update(
             {
