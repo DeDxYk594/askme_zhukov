@@ -1,47 +1,51 @@
 {% load static %}
 <div class="card mb-3 me-5 d-flex flex-row justify-content-between">
 
-  <div class="d-flex flex-column gap-2 align-items-begin ms-2" style="width:25%">
+  <div class="d-flex flex-column gap-2 align-items-center ms-2" style="width:25%">
     <img class="m-2 rounded" src="{% static 'img' %}/{{ item.image_path }}" style="max-width:90%; object-fit:cover" />
   </div>
 
-  <div class="d-flex flex-column justify-content-between mt-1" style="width:55%">
-    <div class="flex-grow-1">
-      <h3 class="card-title mb-4">
-        <a href="{% url 'question' item.id %}" style="text-decoration:none">{{ item.title }}</a>
-      </h3>
-      <p class="card-text">{{ item.text }}</p>
-    </div>
-    <div class="d-flex flex-row justify-content-between my-3">
-      <div class="d-flex align-items-end">
-        <a href="{% url 'question' item.pk %}">
-          {% if item.answers_count %}
-          Answers ({{ item.answers_count }})
-          {% else %}
-          No answers yet!
-          {% endif %}
-        </a>
-      </div>
-      <div class="d-flex flex-row gap-4 align-items-end">
-        <span>Tags:</span>
-        {% if item.tags %}
-        <div>
-          {% for tag in item.tags.all %}
-          <a href="{% url 'tag' tag.slug %}" class="badge text-bg-secondary">{{tag.display_name}}</a>
-          {% endfor %}
+  <div class="d-flex flex-column">
+    <h3 class="card-title mb-4">
+      <a href="{% url 'question' item.id %}" style="text-decoration:none">{{ item.title }}</a>
+    </h3>
+    <div class="d-flex flex-row justify-content-between mt-1">
+        <div class="d-flex flex-row justify-content-between">
+          <div>
+            <p class="card-text">{{ item.text }}</p>
+            <div class="d-flex flex-row justify-content-between my-3">
+              <div class="d-flex align-items-end">
+                <a href="{% url 'question' item.pk %}">
+                  {% if item.answers_count %}
+                  Answers ({{ item.answers_count }})
+                  {% else %}
+                  No answers yet!
+                  {% endif %}
+                </a>
+              </div>
+              <div class="d-flex flex-row gap-4 align-items-end">
+                <span>Tags:</span>
+                {% if item.tags %}
+                <div>
+                  {% for tag in item.tags.all %}
+                  <a href="{% url 'tag' tag.slug %}" class="badge text-bg-secondary">{{tag.display_name}}</a>
+                  {% endfor %}
+                </div>
+                {% else %}
+                No tags!
+                {% endif %}
+              </div>
+              <div style="margin-left:20px;">
+              </div>
+            </div>
+          </div>
         </div>
-        {% else %}
-        No tags!
-        {% endif %}
+        
+        <div class="flex-grow-1 d-flex flex-column gap-2 align-items-end" style="margin-right:15px; margin-bottom:10px">
+            {% include 'components/user_card.html' with user=item.user_author %}
+            {% include 'components/rating.html' with likes_count=item.likes_count dislikes_count=item.dislikes_count %}
+        </div>
       </div>
-      <div style="margin-left:20px;">
-      </div>
-    </div>
   </div>
-
-  <div class="d-flex flex-column align-items-end justify-content-between gap-2 my-2" style="width:15%; margin-right:15px">
-    {% include 'components/user_card.html' with user=item.user_author %}
-    {% include 'components/rating.html' with likes_count=item.likes_count dislikes_count=item.dislikes_count %}
-  </div>
-
+    
 </div>
