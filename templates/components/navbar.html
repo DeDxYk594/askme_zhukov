@@ -17,18 +17,29 @@
           <button class="btn btn-outline-primary" type="submit"><h6><i class="bi-search"></i></h6></button>
       </form>
     </div>
+    {% if user.is_authenticated %}
     <div class="d-flex flex-row account">
       <div class="me-3">
         <img class="rounded-pill border" src="{% static 'img' %}/1.jpg" width="50" height="50" />
       </div>
       <div class="d-flex flex-column justify-content-between">
-        <div>Dr. Pepper</div>
+        <div style="text-align:center">{{ user.username }}
+          {% if user.is_staff %}
+          <i class="bi-award"></i>
+          {% endif %}
+        </div>
         <div class="d-flex flex-row gap-3">
           <div><a style="text-decoration:none" href="{% url 'settings' %}"><i class="bi-gear-wide"></i> Settings</a></div>
-          <div><a style="text-decoration:none" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"><i class="bi-box-arrow-right"></i> Logout</a></div>
+          <div><a style="text-decoration:none" href="{% url 'logout' %}?next={{ request.path }}"><i class="bi-box-arrow-right"></i> Logout</a></div>
         </div>
       </div>
     </div>
+    {% else %}
+    <div class="d-flex flex-row account gap-3">
+      <a href="{% url 'login' %}?next={{ request.path }}" style="text-decoration:none"><button class="form-control" style="width:110px"><i class="bi-person" style="margin-right: 5px"></i>Login</button></a>
+      <a href="{% url 'register' %}?next={{ request.path }}" style="text-decoration:none"><button class="form-control" style="width:140px"><i class="bi-person-add" style="margin-right: 5px"></i>Register</button></a>
+    </div>
+    {% endif %}
   </div>
   <div style="height:90px"></div>
 </nav>

@@ -7,8 +7,8 @@ from app.models import (
     VoteToQuestion,
     VoteToUser,
 )
-from django.db.models import Case, IntegerField, When, Count
 from tqdm import tqdm
+import re
 
 
 def _chunks(lst, n):
@@ -19,6 +19,14 @@ def _chunks(lst, n):
 
 def chunks(lst, n=1000):
     return list(_chunks(lst, n))
+
+
+def slugify(text):
+    """Заменить в тексте пробелы на подчёркивания, """
+    text = text.lower()
+    text = text.replace(" ", "_")
+    text = re.sub(r"[^a-z0-9_]", "", text)
+    return text
 
 
 def recalculateRating():

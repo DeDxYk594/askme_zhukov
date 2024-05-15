@@ -58,7 +58,7 @@ If ratio <= 50, there can be less freakin data created
         ]
 
         print("Start load those our users in database...")
-        for chunk in tqdm(chunks(users, 2)):
+        for chunk in tqdm(chunks(users)):
             User.objects.bulk_create(chunk)
 
         print("Start generate those tags (not django, but our users)...")
@@ -74,7 +74,7 @@ If ratio <= 50, there can be less freakin data created
         ]
 
         print("Start load those our tags in database...")
-        for chunk in tqdm(chunks(tags, 2)):
+        for chunk in tqdm(chunks(tags)):
             Tag.objects.bulk_create(chunk)
 
         print("Start generate those questions from our users")
@@ -102,7 +102,7 @@ If ratio <= 50, there can be less freakin data created
         ]
 
         print("Start load those questions in database...")
-        for chunk in tqdm(chunks(questions, 2)):
+        for chunk in tqdm(chunks(questions)):
             Question.objects.bulk_create(chunk)
 
         print("Start adding tags to those questions...")
@@ -120,7 +120,7 @@ If ratio <= 50, there can be less freakin data created
         ]
 
         print("Start load all those answers in our database...")
-        for chunk in tqdm(chunks(answers, 2)):
+        for chunk in tqdm(chunks(answers)):
             Answer.objects.bulk_create(chunk)
 
         print("Start generating all those likes from user to user")

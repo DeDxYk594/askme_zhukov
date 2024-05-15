@@ -16,8 +16,8 @@
             <div class="d-flex flex-row justify-content-between my-3">
               <div class="d-flex align-items-end">
                 <a href="{% url 'question' item.pk %}">
-                  {% if item.answers_count %}
-                  Answers ({{ item.answers_count }})
+                  {% if item.rating_answers %}
+                  Answers ({{ item.rating_answers }})
                   {% else %}
                   No answers yet!
                   {% endif %}

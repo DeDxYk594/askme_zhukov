@@ -4,7 +4,11 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.core.paginator import Paginator
 from django.views.generic import TemplateView
 from math import ceil
+from django.contrib.auth.decorators import login_required
 from .models import Question, Answer, User, Tag
+from django.contrib.auth import logout, authenticate, login
+from django.shortcuts import redirect
+from .forms import LoginForm
 
 from . import mock
 
@@ -45,10 +49,6 @@ def paginate(data, request: HttpRequest, dataPerPage: int = 5) -> tuple[list, di
     )
 
 
-# class IndexView(AskmeView):
-#     template_name = "index.html"
-
-
 def index(request):
     questions, pagination = paginate(Question.objects.news(), request, 10)
 
@@ -62,12 +62,6 @@ def index(request):
     return render(request, "index.html", context)
 
 
-# class HotView(AskmeView):
-#     template_name = "index.html"
-
-# TODO
-
-
 def hot(request):
     questions, pagination = paginate(Question.objects.hots(), request, 10)
     context = {
@@ -79,13 +73,9 @@ def hot(request):
     return render(request, "index.html", context)
 
 
-# class TagView(AskmeView):
-#     template_name = "index.html"
-
-
 def tag(request, tag_id):
     qs = Question.objects.by_tag(tag_id)
-    tag=Tag.objects.get(slug=tag_id)
+    tag = Tag.objects.get(slug=tag_id)
     questions, pagination = paginate(qs, request, 5)
 
     context = {
@@ -97,10 +87,6 @@ def tag(request, tag_id):
     }
 
     return render(request, "index.html", context)
-
-
-# class QuestionView(AskmeView):
-#     template_name = "question.html"
 
 
 def question(request, question_id):
@@ -124,12 +110,37 @@ def settings(request):
 
 
 def register(request):
-    template_name = "register.html"
+    return render(request, "register.html")
 
 
-def login(request):
-    template_name = "login.html"
+def login_view(request):
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                if request.GET.get("next"):
+                    return redirect(request.GET.get("next"))
+                return redirect("/")
+            else:
+                form.add_error(None, "Invalid username or password")
+    else:
+        form = LoginForm()
+
+    return render(request, "login.html")
 
 
+def logout_view(request):
+    logout(request)
+    if request.GET.get("next"):
+        return redirect(request.GET.get("next"))
+    return redirect("/")
+
+
+@login_required(login_url="/login")
 def ask(request):
-    template_name = "ask.html"
+    print(request.user.username)
+    return render(request, "ask.html")

@@ -1,37 +1,54 @@
-{% extends 'layouts/base.html' %} {% block content %}
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'sellect.js/sellect.css' %}">
+<script src="{% static 'sellect.js/sellect.js' %}"></script>
 <h1>New Question</h1>
 <div class="container">
-  <div class="row mb-3">
-    <div class="col-1">
-      Title
+  <form method="post">
+    {% csrf_token %}
+    <div class="row mb-3">
+      <div class="col-1">
+        Title
+      </div>
+      <div class="col-9">
+        <input type="text" class="form-control" />
+      </div>
     </div>
-    <div class="col-9">
-      <input type="text" class="form-control" />
-    </div>
-  </div>
 
-  <div class="row mb-3">
-    <div class="col-1">
-      Text
+    <div class="row mb-3">
+      <div class="col-1">
+        Text
+      </div>
+      <div class="col-9">
+        <textarea class="form-control"></textarea>
+      </div>
     </div>
-    <div class="col-9">
-      <textarea class="form-control"></textarea>
-    </div>
-  </div>
 
-  <div class="row mb-3">
-    <div class="col-1">
-      Tags
+    
+    <div class="row mb-3">
+      <div class="col-1">
+        Tags
+      </div>
+      <div class="col-9">
+        <div id="sellect_tags"></div>
+      </div>
     </div>
-    <div class="col-9">
-      <input type="text" class="form-control" />
-    </div>
-  </div>
+    
+    <script lang="js">
+      console.log("I am here!")
+      var mySellect = sellect("#sellect_tags", {
+        originList: ['banana', 'apple', 'pineapple', 'papaya', 'grape', 'orange', 'grapefruit', 'guava', 'watermelon', 'melon'],
+        destinationList: ['banana', 'papaya', 'grape', 'orange', 'guava']
+      });    
+      mySellect.init();
+    </script>
 
-  <div class="row">
-    <div class="col-4">
-      <button class="btn btn-outline-success"><i class="bi-check-lg"></i> Ask!</button>
+    <div class="row">
+      <div class="col-4">
+        <button class="btn btn-outline-success" type="submit"><i class="bi-check-lg"></i> Ask!</button>
+      </div>
     </div>
-  </div>
+  </form>
 </div>
 {% endblock %}
