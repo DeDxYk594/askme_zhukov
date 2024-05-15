@@ -28,7 +28,7 @@
                 {% if item.tags %}
                 <div>
                   {% for tag in item.tags.all %}
-                  <a href="{% url 'tag' tag.slug %}" class="badge text-bg-secondary">{{tag.display_name}}</a>
+                  <a href="{% url 'tag' tag.slug %}" class="badge text-bg-secondary">{{tag.title}}</a>
                   {% endfor %}
                 </div>
                 {% else %}
@@ -43,7 +43,7 @@
         
         <div class="flex-grow-1 d-flex flex-column gap-2 align-items-end" style="margin-right:15px; margin-bottom:10px">
             {% include 'components/user_card.html' with user=item.user_author %}
-            {% include 'components/rating.html' with likes_count=item.likes_count dislikes_count=item.dislikes_count %}
+            {% include 'components/rating.html' with likes_count=item.rating_likes dislikes_count=item.rating_dislikes %}
         </div>
       </div>
   </div>

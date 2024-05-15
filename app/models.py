@@ -1,16 +1,21 @@
 from django.db import models
 import django.contrib.auth.models
 
+from app.mock import QUESTIONS
+
 
 class TagManager(models.Manager):
-    def with_question_count(self):
-        return self.annotate(question_count=models.Count("question")).order_by(
-            "-question_count"
-        )
+    def normalized_rating(self):
+        """Вычислить нормализованный рейтинг"""
+        return self.annotate(question_count=models.Count("question"))
+
+    def tops(self):
+        return self.order_by("-rating_questions")
 
 
 class UserManager(models.Manager):
-    def with_rating(self):
+    def normalized_rating(self):
+        """Вычислить нормализованный рейтинг"""
         return self.annotate(
             likes_count=models.Count(
                 models.Case(
@@ -24,12 +29,26 @@ class UserManager(models.Manager):
                     output_field=models.IntegerField(),
                 )
             ),
+            questions_count=models.Count("question"),
+            answers_count=models.Count("answer"),
         )
+
+    def bests(self):
+        """Вычислить рейтинг пользователя по формуле и отсортировать пользователей по убыванию рейтинга"""
+        return self.annotate(
+            rating_points=models.ExpressionWrapper(
+                models.F("rating_likes") * 100
+                - models.F("rating_dislikes") * 200
+                + models.F("rating_answers") * 10,
+                output_field=models.BigIntegerField(),
+            )
+        ).order_by("-rating_points")
 
 
 # Добавить запрос на получение самых новых, самых популярных, сделать вопросы по тегу
 class QuestionManager(models.Manager):
-    def with_num_answers_and_rating(self):
+    def normalized_rating(self):
+        """Вычислить нормализованный рейтинг"""
         return self.annotate(
             answers_count=models.Count("answer"),
         ).annotate(
@@ -47,47 +66,51 @@ class QuestionManager(models.Manager):
             ),
         )
 
-    def hots(self):
-        return self.with_num_answers_and_rating().order_by(
-            "-(likes_count+dislikes_count)"
-        )
+    def news(self):
+        return self.order_by("-created_at")
 
-    def one_with_rating(self, pk):
+    def hots(self):
+        return self.annotate(
+            rating_points=models.ExpressionWrapper(
+                models.F("rating_likes") * 10
+                - models.F("rating_dislikes") * 20
+                + models.F("rating_answers") * 15,
+                output_field=models.BigIntegerField(),
+            )
+        ).order_by("-rating_points")
+
+    def by_tag(self, tag_id: str):
+        return self.filter(tags__slug=tag_id)
+
+
+class AnswerManager(models.Manager):
+    def normalized_rating(self):
+        """Вычислить нормализованный рейтинг"""
         return self.annotate(
             likes_count=models.Count(
                 models.Case(
-                    models.When(votetoquestion__is_like=True, then=1),
+                    models.When(votetoanswer__is_like=True, then=1),
                     output_field=models.IntegerField(),
                 )
             ),
             dislikes_count=models.Count(
                 models.Case(
-                    models.When(votetoquestion__is_like=False, then=1),
+                    models.When(votetoanswer__is_like=False, then=1),
                     output_field=models.IntegerField(),
                 )
             ),
-        ).get(pk=pk)
+        )
 
-
-class AnswerManager(models.Manager):
     def answers_for_question(self, question):
         return (
             self.filter(question_to=question)
             .annotate(
-                likes_count=models.Count(
-                    models.Case(
-                        models.When(votetoanswer__is_like=True, then=1),
-                        output_field=models.IntegerField(),
-                    )
-                ),
-                dislikes_count=models.Count(
-                    models.Case(
-                        models.When(votetoanswer__is_like=False, then=1),
-                        output_field=models.IntegerField(),
-                    )
-                ),
+                rating_points=models.ExpressionWrapper(
+                    models.F("rating_likes") * 100 - models.F("rating_dislikes") * 200,
+                    output_field=models.BigIntegerField(),
+                )
             )
-            .order_by("-likes_count")
+            .order_by("-rating_points")
         )
 
 
@@ -97,6 +120,7 @@ class Tag(models.Model):
     title = models.TextField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    rating_questions = models.BigIntegerField(default=0)
 
 
 class User(models.Model):
@@ -107,6 +131,8 @@ class User(models.Model):
     avatar_path = models.TextField(max_length=300)
     rating_likes = models.BigIntegerField(default=0)
     rating_dislikes = models.BigIntegerField(default=0)
+    rating_questions = models.BigIntegerField(default=0)
+    rating_answers = models.BigIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -123,6 +149,7 @@ class Question(models.Model):
     image_path = models.TextField(max_length=300)  # TODO Сделать ImageField
     rating_likes = models.BigIntegerField(default=0)
     rating_dislikes = models.BigIntegerField(default=0)
+    rating_answers = models.BigIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

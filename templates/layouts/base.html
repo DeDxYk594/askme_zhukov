@@ -21,13 +21,13 @@
           <h1>Popular Tags</h1>
           <div class="d-flex gap-3 flex-column">
             {% for tag in popular_tags %}
-            <a href="{% url 'tag' tag.slug %}" class="text-{{ tag.color }}" style="white-space: nowrap">{{ tag.display_name }}</a>
+            <a href="{% url 'tag' tag.slug %}" class="text-blue" style="white-space: nowrap">{{ tag.title }}</a>
             {% endfor %}
           </div>
           <h1 style="padding-top: 40px">Best Members</h1>
           <div class="d-flex gap-3 flex-column">
             {% for member in best_members %}
-            <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" style="white-space: nowrap">{{member.name}}</a>
+            <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" style="white-space: nowrap">{{member.django_user.username}}</a>
             {% endfor %}
           </div>
         </div>

@@ -13,20 +13,7 @@ import django.contrib.auth
 from tqdm import tqdm
 from faker import Faker
 import random
-
-
-def _chunks(lst, n):
-    """Yield successive n-sized chunks from lst."""
-    for i in range(0, len(lst), n):
-        yield lst[i : i + n]
-
-
-def chunks(lst, n):
-    return list(_chunks(lst, 1000))
-
-
-def flatten(xss):
-    return [x for xs in xss for x in xs]
+from app.utils import chunks, recalculateRating
 
 
 class Command(BaseCommand):
@@ -55,7 +42,8 @@ If ratio <= 50, there can be less freakin data created
         print("Start generate those django users...")
         django_users = [
             django.contrib.auth.models.User(
-                email=faker_buddy.email(), username=faker_buddy.user_name()+faker_buddy.user_name() + str(_)
+                email=faker_buddy.email(),
+                username=faker_buddy.user_name() + faker_buddy.user_name() + str(_),
             )
             for _ in tqdm(range(ratio))
         ]
@@ -76,7 +64,12 @@ If ratio <= 50, there can be less freakin data created
         print("Start generate those tags (not django, but our users)...")
         tags_per_post = 3
         tags = [
-            Tag(slug=faker_buddy.user_name()+faker_buddy.user_name()+faker_buddy.user_name(), title=faker_buddy.name())
+            Tag(
+                slug=faker_buddy.user_name()
+                + faker_buddy.user_name()
+                + faker_buddy.user_name(),
+                title=faker_buddy.name(),
+            )
             for ____ in tqdm(range(ratio))
         ]
 
@@ -133,12 +126,12 @@ If ratio <= 50, there can be less freakin data created
         print("Start generating all those likes from user to user")
         votes_to_user = [
             VoteToUser(user_from=uFrom, user_to=uTo, is_like=random.randrange(2))
-            for uFrom in users
+            for uFrom in tqdm(users)
             for uTo in random.sample(users, 10)
         ]
 
         print("Start load all those user likes in our database...")
-        for chunk in tqdm(chunks(votes_to_user, 2)):
+        for chunk in tqdm(chunks(votes_to_user)):
             VoteToUser.objects.bulk_create(chunk)
 
         print("Start generating all those likes from user to question")
@@ -146,21 +139,24 @@ If ratio <= 50, there can be less freakin data created
             VoteToQuestion(
                 user_from=uFrom, question_to=qTo, is_like=random.randrange(2)
             )
-            for uFrom in users
+            for uFrom in tqdm(users)
             for qTo in random.sample(questions, 10)
         ]
 
         print("Start load all those question likes in our database...")
-        for chunk in tqdm(chunks(votes_to_question, 2)):
+        for chunk in tqdm(chunks(votes_to_question)):
             VoteToQuestion.objects.bulk_create(chunk)
 
         print("Start generating all those likes from user to answer")
         votes_to_answer = [
             VoteToAnswer(user_from=uFrom, answer_to=aTo, is_like=random.randrange(2))
-            for uFrom in users
+            for uFrom in tqdm(users)
             for aTo in random.sample(answers, 200)
         ]
 
         print("Start load all those answer likes in our database...")
-        for chunk in tqdm(chunks(votes_to_answer, 2)):
+        for chunk in tqdm(chunks(votes_to_answer)):
             VoteToAnswer.objects.bulk_create(chunk)
+
+        print("We need to recalculate denormalization for our db, so wait SO MORE")
+        recalculateRating()

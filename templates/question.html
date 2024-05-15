@@ -6,7 +6,7 @@
     {% for answer in answers %}
       {% include "components/answer.html" with likes_count=answer.likes_count dislikes_count=answer.dislikes_count %}
     {% endfor %}
-    {% include 'components/pagination_for_answers.html' %}
+    {% include 'components/pagination.html' %}
     <div class="container">
       <div class="row">
         <div class="col-2">

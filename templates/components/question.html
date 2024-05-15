@@ -5,11 +5,11 @@
     <img src="{% static 'img' %}/{{ item.image_path }}"
         style="max-width:90%; object-fit:cover" 
         class="display-block rounded" />
-      {% include "components/rating.html" with likes_count=item.likes_count dislikes_count=item.dislikes_count %}
+      {% include "components/rating.html" with likes_count=item.rating_likes dislikes_count=item.rating_dislikes %}
       {% if item.tags %}
       <div>
         {% for tag in item.tags.all %}
-        <a href="{% url 'tag' tag %}" class="badge text-bg-secondary">{{tag.display_name}}</a>
+        <a href="{% url 'tag' tag %}" class="badge text-bg-secondary">{{tag.title}}</a>
         {% endfor %}
       </div>
       {% else %}
