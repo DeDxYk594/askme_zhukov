@@ -10,6 +10,20 @@
     <link href="{% static 'bootstrap-icons' %}/bootstrap-icons.css" rel="stylesheet" />
   </head>
   <body>
+    <style>
+      .tag{
+        transition: ease-in-out 200ms;
+      }
+      .tag:hover {
+        filter: brightness(80%);
+      }
+      .tag_strong{
+        transition: ease-in-out 200ms;
+      }
+      .tag_strong:hover {
+        filter: brightness(40%);
+      }
+    </style>
     {% include 'components/navbar.html' %}
 
     <div class="container">
@@ -19,11 +33,11 @@
         </div>
         <div class="col-3 d-flex flex-column" style="max-width: 30%">
           <h1>Popular Tags</h1>
-          <div class="d-flex gap-3 flex-column">
+          <span>
             {% for tag in popular_tags %}
-            <a href="{% url 'tag' tag.slug %}" class="text-blue" style="white-space: nowrap">{{ tag.title }}</a>
+            <a href="{% url 'tag' tag.slug %}" class="text-blue p-1 tag_strong" style="white-space:nowrap; text-decoration:none; color:{{ tag.color }}"><i class="bi-{{ tag.bootstrap_icon }}"></i> {{ tag.title }}</a>
             {% endfor %}
-          </div>
+          </span>
           <h1 style="padding-top: 40px">Best Members</h1>
           <div class="d-flex gap-3 flex-column">
             {% for member in best_members %}

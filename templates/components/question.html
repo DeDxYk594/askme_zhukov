@@ -3,13 +3,13 @@
 
   <div class="d-flex flex-column align-items-begin me-5 flex-grow-1 gap-2" style="max-width:40%">
     <img src="{% static 'img' %}/{{ item.image_path }}"
-        style="max-width:90%; object-fit:cover" 
+        style="max-width:90%; object-fit:cover"
         class="display-block rounded" />
       {% include "components/rating.html" with likes_count=item.rating_likes dislikes_count=item.rating_dislikes %}
       {% if item.tags %}
       <div>
         {% for tag in item.tags.all %}
-        <a href="{% url 'tag' tag %}" class="badge text-bg-secondary">{{tag.title}}</a>
+        <a href="{% url 'tag' tag.slug %}" class="badge tag" style="text-decoration:none; background-color: {{ tag.color }}"><i class="bi-{{ tag.bootstrap_icon }}"></i> {{tag.title}}</a>
         {% endfor %}
       </div>
       {% else %}

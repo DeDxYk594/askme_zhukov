@@ -1,6 +1,6 @@
 from typing import Any
 from django.shortcuts import render
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.core.paginator import Paginator
 from django.views.generic import TemplateView
 from math import ceil
@@ -9,10 +9,8 @@ from .models import Question, Answer, User, Tag
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 from .forms import LoginForm
-
-from . import mock
-
-common = {"popular_tags": mock.POPULAR_TAGS, "best_members": mock.BEST_MEMBERS}
+from django.forms.models import model_to_dict
+import json
 
 
 def paginate(data, request: HttpRequest, dataPerPage: int = 5) -> tuple[list, dict]:
@@ -130,7 +128,7 @@ def login_view(request):
     else:
         form = LoginForm()
 
-    return render(request, "login.html")
+    return render(request, "login.html", context={"form": form})
 
 
 def logout_view(request):
@@ -144,3 +142,9 @@ def logout_view(request):
 def ask(request):
     print(request.user.username)
     return render(request, "ask.html")
+
+
+def get_all_tags(request):
+    tags = [i for i in Tag.objects.all()]
+    ret = [model_to_dict(i) for i in tags]
+    return HttpResponse(json.dumps(ret), content_type="application/json")

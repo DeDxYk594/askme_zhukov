@@ -13,7 +13,15 @@ import django.contrib.auth
 from tqdm import tqdm
 from faker import Faker
 import random
-from app.utils import chunks, recalculateRating
+from app.utils import chunks, recalculateRating, slugify
+
+with open("app/management/commands/allicons.txt") as f:
+    ALL_ICONS = [i.strip().replace("\x00", "") for i in f.readlines()]
+ALL_ICONS = [i for i in ALL_ICONS if len(i) > 3]
+
+with open("app/management/commands/allcolors.txt") as f:
+    ALL_COLORS = [i.strip().replace("\x00", "") for i in f.readlines()]
+ALL_COLORS = [i for i in ALL_COLORS if len(i) > 3]
 
 
 class Command(BaseCommand):
@@ -60,21 +68,25 @@ If ratio <= 50, there can be less freakin data created
         print("Start load those our users in database...")
         for chunk in tqdm(chunks(users)):
             User.objects.bulk_create(chunk)
-
-        print("Start generate those tags (not django, but our users)...")
+        print("Start generate tag names (not models yet)")
+        tag_titles = list(
+            set([faker_buddy.word().capitalize() for _ in tqdm(range(ratio * 10))])
+        )[:ratio]
+        tag_slugs = [slugify(tag) for tag in tag_titles]
+        print("Start generate those tags ...")
         tags_per_post = 3
         tags = [
             Tag(
-                slug=faker_buddy.user_name()
-                + faker_buddy.user_name()
-                + faker_buddy.user_name(),
-                title=faker_buddy.name(),
+                slug=slug,
+                title=title,
+                bootstrap_icon=random.choice(ALL_ICONS),
+                color=random.choice(ALL_COLORS),
             )
-            for ____ in tqdm(range(ratio))
+            for (title, slug) in tqdm(zip(tag_titles, tag_slugs))
         ]
 
         print("Start load those our tags in database...")
-        for chunk in tqdm(chunks(tags)):
+        for chunk in tqdm(chunks(tags, n=1)):
             Tag.objects.bulk_create(chunk)
 
         print("Start generate those questions from our users")

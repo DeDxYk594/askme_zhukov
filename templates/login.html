@@ -1,56 +1,44 @@
 {% extends 'layouts/base.html' %} {% block content %}
-<h1>Log In</h1>
+<h1 class="mb-5">Log In</h1>
 <div class="container">
   <form method="post">
     {% csrf_token %}
     <div class="row">
+      {% if form.errors %}
       <div class="alert alert-danger" role="alert">
-        Sorry, wrong login for this password! You mean zhugeo@mail.ru?
-        </div>
+        Sorry, wrong credentials
       </div>
-      <div class="row mb-3">
+      {% endif %}
+    </div>
+    <div class="row mb-3">
         <div class="col-1">
           Login
         </div>
         <div class="col-9">
           <input type="text" name="username" id="id_username"
-            class="form-control{% if form.username.errors %} is-invalid{% endif %}"
-            value="{{ form.username.value|default:'' }}">
-          {% if form.username.errors %}
-            <div class="invalid-feedback">
-              {% for error in form.username.errors %}
-                {{ error }}
-              {% endfor %}
-            </div>
-          {% endif %}
+          class="form-control{% if form.username.errors %} is-invalid{% endif %}"
+          value="{{ form.username.value|default:'' }}">
+        </div>
       </div>
-    </div>
 
-    <div class="row mb-3">
-      <div class="col-1">
-        Password
+      <div class="row mb-3">
+        <div class="col-1">
+          Password
+        </div>
+        <div class="col-9">
+          <input type="password" name="password" id="id_password"
+          class="form-control{% if form.password.errors %} is-invalid{% endif %}">
+
+        </div>
       </div>
-      <div class="col-9">
-        <input type="password" name="password" id="id_password"
-                class="form-control{% if form.password.errors %} is-invalid{% endif %}">
-        {% if form.password.errors %}
-            <div class="invalid-feedback">
-                {% for error in form.password.errors %}
-                    {{ error }}
-                {% endfor %}
-            </div>
-        {% endif %}
 
+      <div class="row">
+        <button class="btn btn-outline-success" type="submit"><i class="bi-check-lg"></i> Log in!</button>
       </div>
-    </div>
 
-    <div class="row">
-      <button class="btn btn-outline-success" type="submit"><i class="bi-check-lg"></i> Log in!</button>
-    </div>
-
-    <div class="row">
-      <a href="{% url 'register' %}">Create new account</a>
-    </div>
-  </form>
-</div>
-{% endblock %}
+      <div class="row">
+        <a href="{% url 'register' %}">Create new account</a>
+      </div>
+    </form>
+  </div>
+  {% endblock %}

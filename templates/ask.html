@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{% static 'sellect.js/sellect.css' %}">
 <script src="{% static 'sellect.js/sellect.js' %}"></script>
 <h1>New Question</h1>
-<div class="container">
+<div class="flex flex-column">
   <form method="post">
     {% csrf_token %}
     <div class="row mb-3">
@@ -25,22 +25,22 @@
       </div>
     </div>
 
-    
+
     <div class="row mb-3">
       <div class="col-1">
         Tags
       </div>
       <div class="col-9">
-        <div id="sellect_tags"></div>
+        <input style="all:unset" id="sellect_tags"></div>
       </div>
     </div>
-    
+
     <script lang="js">
       console.log("I am here!")
       var mySellect = sellect("#sellect_tags", {
         originList: ['banana', 'apple', 'pineapple', 'papaya', 'grape', 'orange', 'grapefruit', 'guava', 'watermelon', 'melon'],
         destinationList: ['banana', 'papaya', 'grape', 'orange', 'guava']
-      });    
+      });
       mySellect.init();
     </script>
 

@@ -1,8 +1,6 @@
 from django.db import models
 import django.contrib.auth.models
 
-from app.mock import QUESTIONS
-
 
 class TagManager(models.Manager):
     def normalized_rating(self):
@@ -120,7 +118,12 @@ class Tag(models.Model):
     title = models.TextField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    bootstrap_icon = models.CharField(max_length=100)
+    color = models.CharField(max_length=10, default="#dd1111")
     rating_questions = models.BigIntegerField(default=0)
+
+    def __str__(self):
+        return self.title
 
 
 class User(models.Model):
