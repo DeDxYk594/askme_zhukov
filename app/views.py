@@ -1,4 +1,3 @@
-from typing import Any
 from django.shortcuts import render
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.core.paginator import Paginator
@@ -8,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Question, Answer, User, Tag
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
-from .forms import LoginForm
+from .forms import LoginForm, AskForm
 from django.forms.models import model_to_dict
 import json
 
@@ -140,8 +139,11 @@ def logout_view(request):
 
 @login_required(login_url="/login")
 def ask(request):
-    print(request.user.username)
     if request.method == "POST":
-        pass
-    else:
+        form = AskForm(request.POST)
+        print(form.title)
         return render(request, "ask.html", context={"all_tags": Tag.objects.all()})
+    elif request.method == "GET":
+        return render(request, "ask.html", context={"all_tags": Tag.objects.all()})
+    else:
+        return Http404(request)
