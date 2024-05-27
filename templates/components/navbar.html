@@ -1,7 +1,7 @@
 {% load static %}
 <nav>
-  <div class="navbar py-1 d-flex position-fixed flex-row justify-content-between bg-body-tertiary px-4 w-100" 
-  style="z-index:4; --webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); --bs-bg-opacity:0.6; 
+  <div class="navbar py-1 d-flex position-fixed flex-row justify-content-between bg-body-tertiary px-4 w-100"
+  style="z-index:4; --webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); --bs-bg-opacity:0.6;
   border-bottom:2px solid #bbbbbb; height:65px">
     <div class="d-flex flex-row justify-content-between">
       <div class="d-flex flex-row gap-10">
@@ -29,8 +29,8 @@
           {% endif %}
         </div>
         <div class="d-flex flex-row gap-3">
-          <div><a style="text-decoration:none" href="{% url 'settings' %}"><i class="bi-gear-wide"></i> Settings</a></div>
-          <div><a style="text-decoration:none" href="{% url 'logout' %}?next={{ request.path }}"><i class="bi-box-arrow-right"></i> Logout</a></div>
+          <div><a style="text-decoration:none" href="{% url 'settings' %}" class="tag_strong"><i class="bi-gear-wide"></i> Settings</a></div>
+          <div><a style="text-decoration:none" href="{% url 'logout' %}?next={{ request.path }}" class="tag_strong"><i class="bi-box-arrow-right"></i> Logout</a></div>
         </div>
       </div>
     </div>

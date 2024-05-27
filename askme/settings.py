@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-#q(prpb37bq&2^4_&po_m+gz*bfqo=mex_o&cbqu%bm8d972u="
 
-DEBUG = False
+debug = True
 
 ALLOWED_HOSTS = []
 
@@ -64,7 +64,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                'app.context_processors.top_data',
+                "app.context_processors.top_data",
             ],
         },
     },

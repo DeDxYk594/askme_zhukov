@@ -141,10 +141,7 @@ def logout_view(request):
 @login_required(login_url="/login")
 def ask(request):
     print(request.user.username)
-    return render(request, "ask.html")
-
-
-def get_all_tags(request):
-    tags = [i for i in Tag.objects.all()]
-    ret = [model_to_dict(i) for i in tags]
-    return HttpResponse(json.dumps(ret), content_type="application/json")
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "ask.html", context={"all_tags": Tag.objects.all()})

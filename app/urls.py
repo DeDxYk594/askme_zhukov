@@ -12,5 +12,4 @@ urlpatterns = [
     path("login", views.login_view, name="login"),
     path("ask", views.ask, name="ask"),
     path("logout", views.logout_view, name="logout"),
-    path("all_tags", views.get_all_tags),
 ]

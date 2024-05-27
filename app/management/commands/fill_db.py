@@ -56,7 +56,7 @@ If ratio <= 50, there can be less freakin data created
             for _ in tqdm(range(ratio))
         ]
         print("Start load those django users in database...")
-        for chunk in tqdm(chunks(django_users, 2)):
+        for chunk in tqdm(chunks(django_users)):
             django.contrib.auth.models.User.objects.bulk_create(chunk)
 
         print("Start generate those users (not django, but our users)...")
@@ -86,7 +86,7 @@ If ratio <= 50, there can be less freakin data created
         ]
 
         print("Start load those our tags in database...")
-        for chunk in tqdm(chunks(tags, n=1)):
+        for chunk in tqdm(chunks(tags)):
             Tag.objects.bulk_create(chunk)
 
         print("Start generate those questions from our users")
