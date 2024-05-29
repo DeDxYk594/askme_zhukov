@@ -12,4 +12,7 @@ urlpatterns = [
     path("login", views.login_view, name="login"),
     path("ask", views.ask, name="ask"),
     path("logout", views.logout_view, name="logout"),
+    path("vote/user", views.vote_user, name="vote_user"),
+    path("vote/question", views.vote_question, name="vote_question"),
+    path("vote/answer", views.vote_answer, name="vote_answer"),
 ]

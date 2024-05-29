@@ -4,13 +4,23 @@ from django.core.paginator import Paginator
 from django.views.generic import TemplateView
 from math import ceil
 from django.contrib.auth.decorators import login_required
-from .models import Question, Answer, User, Tag
+from .models import (
+    Question,
+    Answer,
+    User,
+    Tag,
+    VoteToAnswer,
+    VoteToQuestion,
+    VoteToUser,
+)
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 from .forms import LoginForm, AskForm, AnswerForm, RegisterForm, SettingsForm
 from django.forms.models import model_to_dict
 import json
 import django.contrib.auth.models
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 
 def paginate(data, request: HttpRequest, dataPerPage: int = 5) -> tuple[list, dict]:
@@ -48,7 +58,7 @@ def paginate(data, request: HttpRequest, dataPerPage: int = 5) -> tuple[list, di
 
 
 def index(request):
-    questions, pagination = paginate(Question.objects.news(), request, 10)
+    questions, pagination = paginate(Question.objects.news(request), request, 10)
 
     context = {
         "questions": questions,
@@ -89,8 +99,14 @@ def tag(request, tag_id):
 
 def question(request: HttpRequest, question_id):
     try:
-        q = Question.objects.get(pk=question_id)
-    except ZeroDivisionError:
+        if not request.user.is_anonymous:
+            real_usr = User.objects.get(django_user=request.user)
+            q = Question.objects.with_my_like(real_usr).get(pk=question_id)
+            q.user_author = User.objects.with_my_like(real_usr).get(pk=q.user_author.pk)
+        else:
+            q = Question.objects.get(pk=question_id)
+
+    except:
         raise Http404()
 
     if request.method == "POST":
@@ -103,11 +119,17 @@ def question(request: HttpRequest, question_id):
                     text=answer_text,
                     user_author=User.objects.get(django_user=request.user),
                 )
+                q.rating_answers += 1
+                q.save()
                 ans.save()
                 return redirect("question", question_id=question_id)
 
-    answers = Answer.objects.answers_for_question(q, user=request.user)
+    answers = Answer.objects.answers_for_question(q, request.user)
     page_obj, pagination = paginate(answers, request, 5)
+    if not request.user.is_anonymous:
+        usr = User.objects.get(django_user=request.user)
+        for i in page_obj:
+            i.user_author = User.objects.with_my_like(usr).get(pk=i.user_author.pk)
     context = {
         "question": q,
         "answers": page_obj,
@@ -153,18 +175,23 @@ def settings(request: HttpRequest):
                 email=form.cleaned_data["email"]
             ).count():
                 form.add_error("email", "This email is already used")
-        if(form.is_valid()):
-            request.user.username=form.cleaned_data.get("username")
-            request.user.email=form.cleaned_data.get("email")
-            if(form.cleaned_data.get("password")):
+        if form.is_valid():
+            request.user.username = form.cleaned_data.get("username")
+            request.user.email = form.cleaned_data.get("email")
+            if form.cleaned_data.get("password"):
                 request.user.set_password(form.cleaned_data.get("password"))
             request.user.save()
-            if(form.cleaned_data.get("avatar")):
-                askme_user.avatar=form.cleaned_data.get("avatar")
+            if form.cleaned_data.get("avatar"):
+                askme_user.avatar = form.cleaned_data.get("avatar")
                 askme_user.save()
-            return render(request, "settings.html", {"askme_user": askme_user,"settings_success":True})
-        return render(request, "settings.html", {"askme_user": askme_user,"form":form})
-
+            return render(
+                request,
+                "settings.html",
+                {"askme_user": askme_user, "settings_success": True},
+            )
+        return render(
+            request, "settings.html", {"askme_user": askme_user, "form": form}
+        )
 
     else:
         return render(request, "settings.html", {"askme_user": askme_user})
@@ -260,3 +287,105 @@ def ask(request: HttpRequest):
         )
     else:
         return render(request, "ask.html", context={"all_tags": Tag.objects.all()})
+
+
+@login_required
+@require_http_methods(["POST"])
+def vote_question(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            question_id = data.get("question_id")
+            is_like = data.get("is_like")
+            do_retract = data.get("do_retract")
+
+        except KeyError:
+            return JsonResponse({"status": "fail"})
+
+        user = User.objects.get(django_user=request.user)
+        question = Question.objects.get(id=question_id)
+
+        for vote in VoteToQuestion.objects.filter(user_from=user, question_to=question):
+            if vote.is_like:
+                question.rating_likes -= 1
+            else:
+                question.rating_dislikes -= 1
+            question.save()
+            vote.delete()
+        if not do_retract:
+            vote = VoteToQuestion(user_from=user, question_to=question, is_like=is_like)
+            if is_like:
+                question.rating_likes += 1
+            else:
+                question.rating_dislikes += 1
+            question.save()
+            vote.save()
+        return JsonResponse({"status": "ok"})
+
+
+@login_required
+@require_http_methods(["POST"])
+def vote_user(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user_id = data.get("user_id")
+            is_like = data.get("is_like")
+            do_retract = data.get("do_retract")
+
+        except KeyError:
+            return JsonResponse({"status": "fail"})
+
+        user_from = User.objects.get(django_user=request.user)
+        user_to = User.objects.get(id=user_id)
+
+        for vote in VoteToUser.objects.filter(user_from=user_from, user_to=user_to):
+            if vote.is_like:
+                user_to.rating_likes -= 1
+            else:
+                user_to.rating_dislikes -= 1
+            user_to.save()
+            vote.delete()
+        if not do_retract:
+            vote = VoteToUser(user_from=user_from, user_to=user_to, is_like=is_like)
+            if is_like:
+                user_to.rating_likes += 1
+            else:
+                user_to.rating_dislikes += 1
+            user_to.save()
+            vote.save()
+        return JsonResponse({"status": "ok"})
+
+
+@login_required
+@require_http_methods(["POST"])
+def vote_answer(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            answer_id = data.get("answer_id")
+            is_like = data.get("is_like")
+            do_retract = data.get("do_retract")
+
+        except KeyError:
+            return JsonResponse({"status": "fail"})
+
+        user = User.objects.get(django_user=request.user)
+        answer = Answer.objects.get(id=answer_id)
+
+        for vote in VoteToAnswer.objects.filter(user_from=user, answer_to=answer):
+            if vote.is_like:
+                answer.rating_likes -= 1
+            else:
+                answer.rating_dislikes -= 1
+            answer.save()
+            vote.delete()
+        if not do_retract:
+            vote = VoteToAnswer(user_from=user, answer_to=answer, is_like=is_like)
+            if is_like:
+                answer.rating_likes += 1
+            else:
+                answer.rating_dislikes += 1
+            answer.save()
+            vote.save()
+        return JsonResponse({"status": "ok"})

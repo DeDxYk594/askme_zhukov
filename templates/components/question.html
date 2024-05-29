@@ -5,7 +5,7 @@
     <img src="{{ MEDIA_URL }}{{ item.image }}"
         style="max-width:90%; object-fit:cover"
         class="display-block rounded" />
-      {% include "components/rating.html" with likes_count=item.rating_likes dislikes_count=item.rating_dislikes %}
+      {% include "components/rating_question.html" with question=item %}
       {% if item.tags %}
       <div>
         {% for tag in item.tags.all %}

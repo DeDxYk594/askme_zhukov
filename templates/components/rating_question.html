@@ -1,0 +1,29 @@
+{% load static %}
+{% load mathfilters %}
+<div class="card" style="width:fit-content">
+  <div class="card-body p-2 pb-3">
+    <div class="d-flex flex-row gap-3 mx-1 align-items-center">
+      {% if user.is_authenticated %}
+      {% if question.my_like %}
+      <div style="cursor:pointer" id="question{{ question.pk }}_like"><h5><i class="bi-hand-thumbs-up-fill">  </i></h5></div>
+      {% else %}
+      <div style="cursor:pointer" id="question{{ question.pk }}_like"><h5><i class="bi-hand-thumbs-up">  </i></h5></div>
+      {% endif %}
+      {% endif %}
+      <div class="d-flex justify-content-center"><h5 id="question{{ question.pk }}_score">{{ question.rating_likes | sub:question.rating_dislikes }}</h5></div>
+      {% if user.is_authenticated %}
+      {% if question.my_dislike %}
+      <div style="cursor:pointer" id="question{{ question.pk }}_dislike"><h5><i class="bi-hand-thumbs-down-fill"></i></h5></div>
+      {% else %}
+      <div style="cursor:pointer" id="question{{ question.pk }}_dislike"><h5><i class="bi-hand-thumbs-down"></i></h5></div>
+      {% endif %}
+      {% endif %}
+    </div>
+    <div class="border rounded-pill" style="height:7px;width:100%;overflow:clip">
+      <div class="bg-black" style="height:5px;width:{% widthratio question.rating_likes question.rating_likes|add:question.rating_dislikes 100 %}%"></div>
+    </div>
+  </div>
+</div>
+<script>
+addListenersToQuestion({{ question.pk }})
+</script>

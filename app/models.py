@@ -45,6 +45,36 @@ class UserManager(models.Manager):
             answers_count=models.Count("answer"),
         )
 
+    def with_my_like(self, user):
+        if user:
+            like_subquery = VoteToUser.objects.filter(
+                user_to=models.OuterRef("pk"), user_from=user, is_like=True
+            )
+
+            dislike_subquery = VoteToUser.objects.filter(
+                user_to=models.OuterRef("pk"), user_from=user, is_like=False
+            )
+
+            annotated_users = User.objects.annotate(
+                my_like=models.Case(
+                    models.When(models.Exists(like_subquery), then=models.Value(1)),
+                    default=models.Value(0),
+                    output_field=models.IntegerField(),
+                ),
+                my_dislike=models.Case(
+                    models.When(models.Exists(dislike_subquery), then=models.Value(1)),
+                    default=models.Value(0),
+                    output_field=models.IntegerField(),
+                ),
+            )
+
+            return annotated_users
+        else:
+            return User.objects.annotate(
+                my_like=models.Value(0),
+                my_dislike=models.Value(0),
+            )
+
     def bests(self):
         """Вычислить рейтинг пользователя по формуле и отсортировать пользователей по убыванию рейтинга"""
         return self.annotate(
@@ -78,10 +108,45 @@ class QuestionManager(models.Manager):
             ),
         )
 
-    def news(self):
-        return self.order_by("-created_at")
+    def news(self, request):
+        if request.user and not request.user.is_anonymous:
+            user = User.objects.get(django_user=request.user)
+        else:
+            user = None
+        return self.with_my_like(user).order_by("-created_at")
 
-    def hots(self):
+    def with_my_like(self, user):
+        if user:
+            like_subquery = VoteToQuestion.objects.filter(
+                question_to=models.OuterRef("pk"), user_from=user, is_like=True
+            )
+
+            dislike_subquery = VoteToQuestion.objects.filter(
+                question_to=models.OuterRef("pk"), user_from=user, is_like=False
+            )
+
+            # Annotate the Question queryset with the desired fields
+            annotated_questions = Question.objects.annotate(
+                my_like=models.Case(
+                    models.When(models.Exists(like_subquery), then=models.Value(1)),
+                    default=models.Value(0),
+                    output_field=models.IntegerField(),
+                ),
+                my_dislike=models.Case(
+                    models.When(models.Exists(dislike_subquery), then=models.Value(1)),
+                    default=models.Value(0),
+                    output_field=models.IntegerField(),
+                ),
+            )
+
+            return annotated_questions
+        else:
+            return Question.objects.annotate(
+                my_like=models.Value(0),
+                my_dislike=models.Value(0),
+            )
+
+    def hots(self, request):
         return self.annotate(
             rating_points=models.ExpressionWrapper(
                 models.F("rating_likes") * 10
@@ -91,7 +156,7 @@ class QuestionManager(models.Manager):
             )
         ).order_by("-rating_points")
 
-    def by_tag(self, tag_id: str):
+    def by_tag(self, request, tag_id: str):
         return self.filter(tags__slug=tag_id)
 
 
@@ -114,13 +179,18 @@ class AnswerManager(models.Manager):
         )
 
     def answers_for_question(self, question, user=None):
-        basic = self.filter(question_to=question).annotate(
+        if user:
+            basic = self.with_my_like(User.objects.get(django_user=user))
+        else:
+            basic = self
+
+        basic = basic.filter(question_to=question).annotate(
             rating_points=models.ExpressionWrapper(
                 models.F("rating_likes") * 100 - models.F("rating_dislikes") * 200,
                 output_field=models.BigIntegerField(),
             )
         )
-        if user and not user.is_anonymous:
+        if user:
             real_user = User.objects.get(django_user=user)
             return (
                 basic.annotate(
@@ -135,6 +205,37 @@ class AnswerManager(models.Manager):
             )
         else:
             return basic.annotate(myans=models.Value(0)).order_by("-rating_points")
+
+    def with_my_like(self, user):
+        if user:
+            like_subquery = VoteToAnswer.objects.filter(
+                answer_to=models.OuterRef("pk"), user_from=user, is_like=True
+            )
+
+            dislike_subquery = VoteToAnswer.objects.filter(
+                answer_to=models.OuterRef("pk"), user_from=user, is_like=False
+            )
+
+            # Annotate the Question queryset with the desired fields
+            annotated_answers = Answer.objects.annotate(
+                my_like=models.Case(
+                    models.When(models.Exists(like_subquery), then=models.Value(1)),
+                    default=models.Value(0),
+                    output_field=models.IntegerField(),
+                ),
+                my_dislike=models.Case(
+                    models.When(models.Exists(dislike_subquery), then=models.Value(1)),
+                    default=models.Value(0),
+                    output_field=models.IntegerField(),
+                ),
+            )
+
+            return annotated_answers
+        else:
+            return Question.objects.annotate(
+                my_like=models.Value(0),
+                my_dislike=models.Value(0),
+            )
 
 
 class Tag(models.Model):

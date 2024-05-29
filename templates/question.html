@@ -1,4 +1,96 @@
 {% extends 'layouts/base.html' %} {% block content %}
+<script>
+function addListenersToAnswer(qid) {
+  document.getElementById(`answer${qid}_like`).addEventListener('click', function() {
+    const data = {
+        answer_id: qid,
+        is_like: true,
+        do_retract: false
+    };
+    if(document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.contains("bi-hand-thumbs-up-fill"))
+    {
+      document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.remove("bi-hand-thumbs-up-fill")
+      document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.add("bi-hand-thumbs-up")
+      data.do_retract=true
+      document.getElementById(`answer${qid}_score`).innerText=String(parseInt(document.getElementById(`answer${qid}_score`).innerText)-1)
+    }
+    else
+    {
+      document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.remove("bi-hand-thumbs-up")
+      document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.add("bi-hand-thumbs-up-fill")
+      data.do_retract=false
+      document.getElementById(`answer${qid}_score`).innerText=String(parseInt(document.getElementById(`answer${qid}_score`).innerText)+1)
+    }
+    if(document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.contains("bi-hand-thumbs-down-fill"))
+    {
+      document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.remove("bi-hand-thumbs-down-fill")
+      document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.add("bi-hand-thumbs-down")
+      document.getElementById(`answer${qid}_score`).innerText=String(parseInt(document.getElementById(`answer${qid}_score`).innerText)+1)
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/vote/answer', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if(xhr.status === 200) {
+                console.log('Vote successful:', JSON.parse(xhr.responseText));
+            } else {
+                console.error('Error:', xhr.statusText);
+            }
+        }
+    };
+
+    xhr.send(JSON.stringify(data));
+});
+document.getElementById(`answer${qid}_dislike`).addEventListener('click', function() {
+  const data = {
+      answer_id: qid,
+      is_like: false,
+      do_retract: false
+  };
+  if(document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.contains("bi-hand-thumbs-down-fill"))
+  {
+    document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.remove("bi-hand-thumbs-down-fill")
+    document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.add("bi-hand-thumbs-down")
+    data.do_retract=true
+    document.getElementById(`answer${qid}_score`).innerText=String(parseInt(document.getElementById(`answer${qid}_score`).innerText)+1)
+  }
+  else
+  {
+    document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.remove("bi-hand-thumbs-down")
+    document.getElementById(`answer${qid}_dislike`).firstChild.firstChild.classList.add("bi-hand-thumbs-down-fill")
+    data.do_retract=false
+    document.getElementById(`answer${qid}_score`).innerText=String(parseInt(document.getElementById(`answer${qid}_score`).innerText)-1)
+  }
+  if(document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.contains("bi-hand-thumbs-up-fill"))
+  {
+    document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.remove("bi-hand-thumbs-up-fill")
+    document.getElementById(`answer${qid}_like`).firstChild.firstChild.classList.add("bi-hand-thumbs-up")
+    document.getElementById(`answer${qid}_score`).innerText=String(parseInt(document.getElementById(`answer${qid}_score`).innerText)-1)
+  }
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/vote/answer', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+  xhr.onreadystatechange = function() {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+          if(xhr.status === 200) {
+              console.log('Vote successful:', JSON.parse(xhr.responseText));
+          } else {
+              console.error('Error:', xhr.statusText);
+          }
+      }
+  };
+
+  xhr.send(JSON.stringify(data));
+});
+}
+</script>
 <div class="d-flex flex-column align-left gap-3 align-items-center">
   <style>
     .myans{

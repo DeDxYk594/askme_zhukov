@@ -7,12 +7,27 @@
     </div>
     <h6>{{ user.django_user.username }}</h6>
     <div class="d-flex flex-row gap-4 mx-1 align-items-center">
-      <div style="cursor:pointer"><h5><i class="bi-caret-up">  </i></h5></div>
-      <div class="d-flex justify-content-center"><h5>{{ user.rating_likes | sub:user.rating_dislikes }}</h5></div>
-      <div style="cursor:pointer"><h5><i class="bi-caret-down"></i></h5></div>
+      {% if request.user.is_authenticated %}
+      {% if user.my_like %}
+      <div style="cursor:pointer"><h5><i class="bi-caret-up-fill" id="user{{ user.pk }}_like">  </i></h5></div>
+      {% else %}
+      <div style="cursor:pointer"><h5><i class="bi-caret-up" id="user{{ user.pk }}_like">  </i></h5></div>
+      {% endif %}
+      {% endif %}
+      <div class="d-flex justify-content-center"><h5 id="user{{ user.pk }}_score">{{ user.rating_likes | sub:user.rating_dislikes }}</h5></div>
+      {% if request.user.is_authenticated %}
+      {% if user.my_dislike %}
+      <div style="cursor:pointer"><h5><i class="bi-caret-down-fill" id="user{{ user.pk }}_dislike"></i></h5></div>
+      {% else %}
+      <div style="cursor:pointer"><h5><i class="bi-caret-down" id="user{{ user.pk }}_dislike"></i></h5></div>
+      {% endif %}
+      {% endif %}
     </div>
     <div class="border rounded-pill" style="height:7px;width:100%;overflow:clip">
       <div class="bg-black " style="height:5px;width:{% widthratio user.rating_likes user.rating_likes|add:user.rating_dislikes 100 %}%"></div>
     </div>
   </div>
 </div>
+<script>
+  addListenersToUser({{ user.pk }})
+</script>

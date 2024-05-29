@@ -11,6 +11,207 @@
     <link rel="stylesheet" href="{% static 'js-select' %}/select.min.css" />
   </head>
   <body>
+    <script>
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+    function addListenersToQuestion(qid) {
+      document.getElementById(`question${qid}_like`).addEventListener('click', function() {
+        const data = {
+            question_id: qid,
+            is_like: true,
+            do_retract: false
+        };
+        if(document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.contains("bi-hand-thumbs-up-fill"))
+        {
+          document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.remove("bi-hand-thumbs-up-fill")
+          document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.add("bi-hand-thumbs-up")
+          data.do_retract=true
+          document.getElementById(`question${qid}_score`).innerText=String(parseInt(document.getElementById(`question${qid}_score`).innerText)-1)
+        }
+        else
+        {
+          document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.remove("bi-hand-thumbs-up")
+          document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.add("bi-hand-thumbs-up-fill")
+          data.do_retract=false
+          document.getElementById(`question${qid}_score`).innerText=String(parseInt(document.getElementById(`question${qid}_score`).innerText)+1)
+        }
+        if(document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.contains("bi-hand-thumbs-down-fill"))
+        {
+          document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.remove("bi-hand-thumbs-down-fill")
+          document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.add("bi-hand-thumbs-down")
+          document.getElementById(`question${qid}_score`).innerText=String(parseInt(document.getElementById(`question${qid}_score`).innerText)+1)
+        }
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/vote/question', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if(xhr.status === 200) {
+                    console.log('Vote successful:', JSON.parse(xhr.responseText));
+                } else {
+                    console.error('Error:', xhr.statusText);
+                }
+            }
+        };
+
+        xhr.send(JSON.stringify(data));
+    });
+    document.getElementById(`question${qid}_dislike`).addEventListener('click', function() {
+      const data = {
+          question_id: qid,
+          is_like: false,
+          do_retract: false
+      };
+      if(document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.contains("bi-hand-thumbs-down-fill"))
+      {
+        document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.remove("bi-hand-thumbs-down-fill")
+        document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.add("bi-hand-thumbs-down")
+        data.do_retract=true
+        document.getElementById(`question${qid}_score`).innerText=String(parseInt(document.getElementById(`question${qid}_score`).innerText)+1)
+      }
+      else
+      {
+        document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.remove("bi-hand-thumbs-down")
+        document.getElementById(`question${qid}_dislike`).firstChild.firstChild.classList.add("bi-hand-thumbs-down-fill")
+        data.do_retract=false
+        document.getElementById(`question${qid}_score`).innerText=String(parseInt(document.getElementById(`question${qid}_score`).innerText)-1)
+      }
+      if(document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.contains("bi-hand-thumbs-up-fill"))
+      {
+        document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.remove("bi-hand-thumbs-up-fill")
+        document.getElementById(`question${qid}_like`).firstChild.firstChild.classList.add("bi-hand-thumbs-up")
+        document.getElementById(`question${qid}_score`).innerText=String(parseInt(document.getElementById(`question${qid}_score`).innerText)-1)
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/vote/question', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+      xhr.onreadystatechange = function() {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+              if(xhr.status === 200) {
+                  console.log('Vote successful:', JSON.parse(xhr.responseText));
+              } else {
+                  console.error('Error:', xhr.statusText);
+              }
+          }
+      };
+
+      xhr.send(JSON.stringify(data));
+  });
+    }
+    </script>
+    <script>
+      function addListenersToUser(qid) {
+        document.getElementById(`user${qid}_like`).addEventListener('click', function() {
+          const data = {
+              user_id: qid,
+              is_like: true,
+              do_retract: false
+          };
+          if(document.getElementById(`user${qid}_like`).classList.contains("bi-caret-up-fill"))
+          {
+            document.getElementById(`user${qid}_like`).classList.remove("bi-caret-up-fill")
+            document.getElementById(`user${qid}_like`).classList.add("bi-caret-up")
+            data.do_retract=true
+            document.getElementById(`user${qid}_score`).innerText=String(parseInt(document.getElementById(`user${qid}_score`).innerText)-1)
+          }
+          else
+          {
+            document.getElementById(`user${qid}_like`).classList.remove("bi-caret-up")
+            document.getElementById(`user${qid}_like`).classList.add("bi-caret-up-fill")
+            data.do_retract=false
+            document.getElementById(`user${qid}_score`).innerText=String(parseInt(document.getElementById(`user${qid}_score`).innerText)+1)
+          }
+          if(document.getElementById(`user${qid}_dislike`).classList.contains("bi-caret-down-fill"))
+          {
+            document.getElementById(`user${qid}_dislike`).classList.remove("bi-caret-down-fill")
+            document.getElementById(`user${qid}_dislike`).classList.add("bi-caret-down")
+            document.getElementById(`user${qid}_score`).innerText=String(parseInt(document.getElementById(`user${qid}_score`).innerText)+1)
+          }
+
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/vote/user', true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+          xhr.onreadystatechange = function() {
+              if (xhr.readyState === XMLHttpRequest.DONE) {
+                  if(xhr.status === 200) {
+                      console.log('Vote successful:', JSON.parse(xhr.responseText));
+                  } else {
+                      console.error('Error:', xhr.statusText);
+                  }
+              }
+          };
+
+          xhr.send(JSON.stringify(data));
+      });
+      document.getElementById(`user${qid}_dislike`).addEventListener('click', function() {
+        const data = {
+            user_id: qid,
+            is_like: false,
+            do_retract: false
+        };
+        if(document.getElementById(`user${qid}_dislike`).classList.contains("bi-caret-down-fill"))
+        {
+          document.getElementById(`user${qid}_dislike`).classList.remove("bi-caret-down-fill")
+          document.getElementById(`user${qid}_dislike`).classList.add("bi-caret-down")
+          data.do_retract=true
+          document.getElementById(`user${qid}_score`).innerText=String(parseInt(document.getElementById(`user${qid}_score`).innerText)+1)
+        }
+        else
+        {
+          document.getElementById(`user${qid}_dislike`).classList.remove("bi-caret-down")
+          document.getElementById(`user${qid}_dislike`).classList.add("bi-caret-down-fill")
+          data.do_retract=false
+          document.getElementById(`user${qid}_score`).innerText=String(parseInt(document.getElementById(`user${qid}_score`).innerText)-1)
+        }
+        if(document.getElementById(`user${qid}_like`).classList.contains("bi-caret-up-fill"))
+        {
+          document.getElementById(`user${qid}_like`).classList.remove("bi-caret-up-fill")
+          document.getElementById(`user${qid}_like`).classList.add("bi-caret-up")
+          document.getElementById(`user${qid}_score`).innerText=String(parseInt(document.getElementById(`user${qid}_score`).innerText)-1)
+        }
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/vote/user', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if(xhr.status === 200) {
+                    console.log('Vote successful:', JSON.parse(xhr.responseText));
+                } else {
+                    console.error('Error:', xhr.statusText);
+                }
+            }
+        };
+
+        xhr.send(JSON.stringify(data));
+    });
+      }
+      </script>
+    </script>
     <style>
       .tag{
         transition: ease-in-out 200ms;
@@ -50,8 +251,6 @@
     </div>
     <footer style="height:60px">
     </footer>
-    <script
-      src="{% static 'js' %}/bootstrap.js"
-    ></script>
+    <script src="{% static 'js' %}/bootstrap.js"></script>
   </body>
 </html>
