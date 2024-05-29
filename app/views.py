@@ -1,8 +1,6 @@
 from django.shortcuts import render
-from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, JsonResponse
 from django.core.paginator import Paginator
-from django.views.generic import TemplateView
-from math import ceil
 from django.contrib.auth.decorators import login_required
 from .models import (
     Question,
@@ -16,11 +14,13 @@ from .models import (
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 from .forms import LoginForm, AskForm, AnswerForm, RegisterForm, SettingsForm
-from django.forms.models import model_to_dict
 import json
 import django.contrib.auth.models
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.contrib.postgres.search import SearchVector
+from django.views.decorators.csrf import csrf_exempt
+from .realtime import notify_room
+import django.core.exceptions
 
 
 def paginate(data, request: HttpRequest, dataPerPage: int = 5) -> tuple[list, dict]:
@@ -59,6 +59,13 @@ def paginate(data, request: HttpRequest, dataPerPage: int = 5) -> tuple[list, di
 
 def index(request):
     questions, pagination = paginate(Question.objects.news(request), request, 10)
+    if not request.user.is_anonymous:
+        usr = User.objects.get(django_user=request.user)
+        qs = []
+        for q in questions.object_list:
+            q = Question.objects.with_my_like(usr).get(pk=q.pk)
+            q.user_author = User.objects.with_my_like(usr).get(pk=q.user_author.pk)
+            qs.append(q)
 
     context = {
         "questions": questions,
@@ -82,7 +89,7 @@ def hot(request):
 
 
 def tag(request, tag_id):
-    qs = Question.objects.by_tag(tag_id)
+    qs = Question.objects.by_tag(request.user, tag_id)
     tag = Tag.objects.get(slug=tag_id)
     questions, pagination = paginate(qs, request, 5)
 
@@ -106,7 +113,7 @@ def question(request: HttpRequest, question_id):
         else:
             q = Question.objects.get(pk=question_id)
 
-    except:
+    except django.core.exceptions.DoesNotExist:
         raise Http404()
 
     if request.method == "POST":
@@ -389,3 +396,37 @@ def vote_answer(request):
             answer.save()
             vote.save()
         return JsonResponse({"status": "ok"})
+
+
+@csrf_exempt
+def search_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+        query = body.get("query", "")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    if not query:
+        return JsonResponse({"error": "Query parameter is required"}, status=400)
+
+    results1 = Question.objects.annotate(search=SearchVector("text", "title")).filter(
+        search=query
+    )
+    results2 = Answer.objects.annotate(search=SearchVector("text")).filter(search=query)
+
+    paginator1 = Paginator(results1, 10)
+    paginator2 = Paginator(results2, 10)
+    page1 = paginator1.page(1)
+    page2 = paginator2.page(1)
+
+    data = [
+        {"in": "question", "id": q.pk, "title": q.title} for q in page1.object_list
+    ] + [
+        {"in": "answer", "id": a.question_to.pk, "title": a.text}
+        for a in page2.object_list
+    ]
+
+    return JsonResponse(data, safe=False)

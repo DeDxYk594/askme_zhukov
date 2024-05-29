@@ -41,9 +41,15 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "my_cache_table",
+    }
+}
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # whitenoise добавляется в низу этого файла
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -105,7 +111,7 @@ TIME_ZONE = "UTC"
 
 # USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

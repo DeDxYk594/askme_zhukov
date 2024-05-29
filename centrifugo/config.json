@@ -1,0 +1,13 @@
+{
+    "v3_use_offset": true,
+    "log_level": "debug",
+    "secret": "asdfsadfasdfasdfasdf",
+    "api_key": "o6ss4Gl74eVM_c0U2jgeMDN8h9RKkXmZTC1u6MMRGC0",
+    "token_hmac_secret_key": "bbe7d157-a253-4094-9759-06a8236543f9",
+    "admin": true,
+    "admin_password": "admin228admin",
+    "admin_secret": "secret228secret",
+    "allowed_origins": [
+      "http://localhost:8008"
+    ]
+  }

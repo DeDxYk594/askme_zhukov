@@ -1,9 +1,24 @@
 from .models import Tag, User
+from django.core.cache import cache
+from .utils import updateCache
+import time
+
+flag = False
 
 
 def top_data(request):
-    popular_tags = Tag.objects.tops()[:10]
-    best_members = User.objects.bests()[:10]
+    global flag
+    popular_tags = cache.get("popular_tags")
+    best_members = cache.get("popular_users")
+    if popular_tags is None:
+        if not flag:
+            flag = True
+            updateCache()
+            flag = False
+        while flag:
+            time.sleep(1)
+        popular_tags = cache.get("popular_tags")
+        best_members = cache.get("popular_users")
     if not request.user.is_anonymous:
         my_user = User.objects.get(django_user=request.user)
     else:

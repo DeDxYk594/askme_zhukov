@@ -7,8 +7,11 @@ from app.models import (
     VoteToQuestion,
     VoteToUser,
 )
+from django.db import models
 from tqdm import tqdm
 import re
+import datetime
+from django.core.cache import cache
 
 
 def _chunks(lst, n):
@@ -22,7 +25,7 @@ def chunks(lst, n=1000):
 
 
 def slugify(text):
-    """Заменить в тексте пробелы на подчёркивания, """
+    """Заменить в тексте пробелы на подчёркивания,"""
     text = text.lower()
     text = text.replace(" ", "_")
     text = re.sub(r"[^a-z0-9_]", "", text)
@@ -84,3 +87,30 @@ def recalculateRating():
 
     for chunk in tqdm(chunks(calculated_tags)):
         Tag.objects.bulk_update(chunk, ["rating_questions"])
+
+
+def updateTags():
+    three_months_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+    popular_tags = (
+        Tag.objects.filter(question__created_at__gte=three_months_ago)
+        .annotate(num_questions=models.Count("question"))
+        .order_by("-num_questions")[:10]
+    )
+
+    cache.set("popular_tags", popular_tags, 60 * 60 * 24)  # Кэшируем на сутки
+
+
+def updateUsers():
+    last_week = datetime.datetime.now() - datetime.timedelta(days=7)
+    popular_users = (
+        User.objects.filter(models.Q(question__created_at__gte=last_week))
+        .annotate(popularity=models.Count("question") + models.Count("answer"))
+        .order_by("-popularity")[:10]
+    )
+
+    cache.set("popular_users", popular_users, 60 * 60 * 24)  # Кэшируем на сутки
+
+
+def updateCache():
+    updateTags()
+    updateUsers()

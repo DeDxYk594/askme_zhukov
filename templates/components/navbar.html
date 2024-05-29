@@ -11,10 +11,21 @@
     <div class="justify-content-between d-flex flex-row gap-5">
       <a href="{% url 'ask' %}"><button class="btn btn-outline-success"><i class="bi-plus-lg"></i> Ask!</button></a>
       <form class="d-flex flex-row flex-grow-0" role="search">
+        <div class="d-flex flex-row">
           <input
           class="form-control me-2" type="search"
-          placeholder="Search" aria-label="Search"/>
-          <button class="btn btn-outline-primary" type="submit" style="padding-top:5px; padding-bottom:2px; padding-right:15px; overflow:hidden"><h6><i class="bi-search"></i></h6></button>
+          placeholder="Search" id="searchfield" style="width:300px" aria-label="Search"/>
+          <button class="btn btn-outline-primary" id="troll" style="padding-top:5px; padding-bottom:2px; padding-right:15px; overflow:hidden"><h6><i class="bi-search"></i></h6></button>
+          <div style="position:fixed;width:100%;max-width:300px;top:65px; background-color:white; border:gray solid 1px;border-radius:10px;overflow-y:auto;overflow-x:clip;max-height:500px;display:none"
+          class="flex-column gap-3"
+          id="resultsmenu">
+            <div style="display:none"><i class="bi-x-lg"></i> <span>No results!</span></div>
+            <div style="display:none"><i class="bi-pen"></i> <span>Start typing!</span></div>
+            <div style="display:none"><i class="bi-alarm"></i> <span>Search is in progress!</span></div>
+            <div style="display:none"><a href=""><i class="bi-question-lg"></i> <span>Question228</span></a></div>
+            <div style="display:none"><a href=""><i class="bi-exclamation-lg"></i> <span>Answer228</span></a></div>
+          </div>
+        </div>
       </form>
     </div>
     {% if user.is_authenticated %}
@@ -43,3 +54,98 @@
   </div>
   <div style="height:90px"></div>
 </nav>
+
+<script>
+  let timeoutId = null;
+  const el=document.getElementById("resultsmenu")
+  const searchfield=document.getElementById("searchfield")
+  function sendSearchQuery() {
+
+      fetch('/search', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: searchfield.value })
+      })
+      .then(response => response.json())
+      .then(data => {
+          clearSearch();
+          console.log(data)
+
+          if (Array.isArray(data)) {
+              if (data.length === 0) {
+                  el.children.item(0).style.display="block"
+              } else if (data.length === 1) {
+                  console.log(data[0]);
+              } else {
+                  let results = document.getElementById("resultsmenu");
+
+                  data.forEach(item => {
+                      let elem = el.children.item(3);
+                      if(item.in=="answer")
+                      elem=el.children.item(4);
+                      let newElement = elem.cloneNode(true);
+                      newElement.style.display = "block";
+                      newElement.lastChild.lastChild.textContent = item.title;
+                      newElement.lastChild.href=`/question/${item.id}`
+                      results.appendChild(newElement);
+                  });
+              }
+          } else {
+              console.error("Ответ сервера не является массивом.");
+          }
+      })
+      .catch(error => {
+          console.error('Ошибка:', error);
+      });
+  }
+
+  function resetTimeout() {
+      // Проверяем, существует ли таймаут
+      if (timeoutId !== null) {
+          // Отменяем существующий таймаут
+          clearTimeout(timeoutId);
+      }
+
+      // Создаем новый таймаут
+      timeoutId = setTimeout(sendSearchQuery, 1000);
+  }
+  function clearSearch()
+  {
+    for(let i=0;i<5;i++)
+    {
+      const ch=el.children.item(i)
+      ch.style.display='none'
+    }
+    while(el.children.length>5){el.removeChild(el.lastChild)}
+
+  }
+  document.getElementById("troll").addEventListener("click",()=>{alert("Search results will submit automatically!")})
+  searchfield.addEventListener("focus",()=>{
+    clearSearch()
+    document.getElementById("resultsmenu").style.display="flex"
+    if(searchfield.value.length)
+    {
+      resetTimeout();
+      el.children.item(2).style.display="block"
+    }
+    else{
+      el.children.item(1).style.display="block"
+    }
+  })
+  searchfield.addEventListener("blur",()=>{
+    setTimeout(()=>{
+    document.getElementById("resultsmenu").style.display="none"
+    if (timeoutId !== null) {
+      // Отменяем существующий таймаут
+      clearTimeout(timeoutId);
+  }
+},100);
+  })
+  searchfield.addEventListener("keyup",()=>{
+    clearSearch()
+    el.children.item(2).style.display="block"
+    resetTimeout()
+  })
+</script>
