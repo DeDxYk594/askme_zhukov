@@ -19,10 +19,6 @@
   font-size: inherit;
   text-align: left;
   background-color: white;
-  background-image: url("../img/chevron.svg");
-  background-repeat: no-repeat;
-  background-size: 0.75rem;
-  background-position: right 0.5rem center;
 }
 .jselect > .jselect__display > span {
   opacity: 0.65;

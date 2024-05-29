@@ -1,28 +1,38 @@
 {% extends 'layouts/base.html' %} {% load static %} {% block content %}
-<link rel="stylesheet" href="{% static 'sellect.js/sellect.css' %}" />
-<script src="{% static 'sellect.js/sellect.js' %}"></script>
 <h1>New Question</h1>
 <div class="flex flex-column">
-  <form method="post">
+  {% if form.errors %}
+  <div class="row">
+    <div class="alert alert-danger" role="alert">
+
+      {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+          <p>{{ field }}: {{ error }}</p>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <form method="post" enctype='multipart/form-data'>
     {% csrf_token %}
     <div class="row mb-3">
       <div class="col-1">Title</div>
       <div class="col-9">
-        <input type="text" class="form-control" />
+        <input type="text" name="title" class="form-control" value="{{ form.title.value|default:'' }}" />
       </div>
     </div>
 
     <div class="row mb-3">
       <div class="col-1">Text</div>
       <div class="col-9">
-        <textarea class="form-control"></textarea>
+        <textarea class="form-control" name="text">{{ form.text.value|default:'' }}</textarea>
       </div>
     </div>
 
     <div class="row mb-3">
       <div class="col-1">Image</div>
       <div class="col-9">
-        <input class="form-control" type="file"></input>
+        <input class="form-control" type="file" name="image"></input>
       </div>
     </div>
 
@@ -30,14 +40,15 @@
       <div class="col-1">Tags</div>
       <div class="col-9">
         <select
-          name="test"
+          name="tags"
           data-multiple="true"
           data-replace="jselect"
           data-locale="en"
           data-search="true"
-          data-placeholder="Choose your region"
+          data-placeholder="Select tags"
+          id="tags_select"
         >
-          <optgroup label="Все теги">
+          <optgroup label="All tags">
             {% for tag in all_tags %}
             <option value="{{ tag.slug }}" data-img="{{ tag.bootstrap_icon }}">{{ tag.title }}</option>
             {% endfor %}
@@ -46,9 +57,9 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row mt-5">
       <div class="col-4">
-        <button class="btn btn-outline-success" type="submit">
+        <button class="btn btn-success" type="submit">
           <i class="bi-check-lg"></i> Ask!
         </button>
       </div>

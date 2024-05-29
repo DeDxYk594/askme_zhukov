@@ -3,7 +3,7 @@
 <div class="card" style="width:fit-content">
   <div class="card-body p-2 pb-3 align-items-center justify-content-center d-flex flex-column">
     <div>
-      <img class="rounded-pill border" src="{% static 'img' %}/{{ user.avatar_path }}" width="50" height="50" />
+      <img class="rounded-pill border" style="object-fit:cover" src="{{ MEDIA_URL }}{{ user.avatar }}" width="50" height="50" />
     </div>
     <h6>{{ user.django_user.username }}</h6>
     <div class="d-flex flex-row gap-4 mx-1 align-items-center">

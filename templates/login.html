@@ -11,10 +11,10 @@
       {% endif %}
     </div>
     <div class="row mb-3">
-        <div class="col-1">
+        <div class="col-2">
           Login
         </div>
-        <div class="col-9">
+        <div class="col-6">
           <input type="text" name="username" id="id_username"
           class="form-control{% if form.username.errors %} is-invalid{% endif %}"
           value="{{ form.username.value|default:'' }}">
@@ -22,23 +22,44 @@
       </div>
 
       <div class="row mb-3">
-        <div class="col-1">
+        <div class="col-2">
           Password
         </div>
-        <div class="col-9">
-          <input type="password" name="password" id="id_password"
+        <div class="col-6">
+          <input type="password" name="password" id="passwd"
           class="form-control{% if form.password.errors %} is-invalid{% endif %}">
-
+        </div>
+        <div class="col-1">
+          <h3><i class="bi-eye" style="cursor:pointer" id="eyeicon"></i></h3>
         </div>
       </div>
 
       <div class="row">
-        <button class="btn btn-outline-success" type="submit"><i class="bi-check-lg"></i> Log in!</button>
+        <div class="col-12">
+          <button class="btn btn-success" type="submit"><i class="bi-check-lg"></i> Log in!</button>
+        </div>
       </div>
 
-      <div class="row">
-        <a href="{% url 'register' %}">Create new account</a>
+      <div class="row mt-5">
+        <a href="{% url 'register' %}" class="tag_strong"><i class="bi-stars"></i> Create new account</a>
       </div>
     </form>
+    <script>
+      var passfield = document.getElementById("passwd");
+      var eyeicon=document.getElementById("eyeicon")
+      function Toggle() {
+        if (passfield.type === "password") {
+            passfield.type = "text";
+            eyeicon.classList.remove("bi-eye")
+            eyeicon.classList.add("bi-eye-slash")
+        }
+        else {
+            passfield.type = "password";
+            eyeicon.classList.remove("bi-eye-slash")
+            eyeicon.classList.add("bi-eye")
+        }
+      }
+      eyeicon.addEventListener("click",()=>{Toggle()})
+    </script>
   </div>
   {% endblock %}

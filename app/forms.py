@@ -8,6 +8,10 @@ class AskForm(forms.Form):
     image = forms.ImageField(label="Image")
 
 
+class AnswerForm(forms.Form):
+    answer = forms.CharField(label="Title", max_length=200)
+
+
 class LoginForm(forms.Form):
     username = forms.CharField(
         max_length=150,
@@ -20,3 +24,19 @@ class LoginForm(forms.Form):
             attrs={"class": "form-control", "placeholder": "Password"}
         )
     )
+
+
+class RegisterForm(forms.Form):
+    username = forms.CharField(max_length=100, min_length=3)
+    email = forms.EmailField(max_length=100, min_length=8)
+    password = forms.CharField(max_length=100, min_length=8, strip=True, required=True)
+    repeat_password = forms.CharField(max_length=100, strip=True, required=True)
+    avatar = forms.ImageField(required=True)
+
+
+class SettingsForm(forms.Form):
+    username = forms.CharField(max_length=100, min_length=3)
+    email = forms.EmailField(max_length=100, min_length=8)
+    password = forms.CharField(max_length=100, min_length=8, strip=True, required=False)
+    repeat_password = forms.CharField(max_length=100, strip=True, required=False)
+    avatar = forms.ImageField(required=False)

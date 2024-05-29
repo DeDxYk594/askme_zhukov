@@ -1,26 +1,57 @@
-{% extends 'layouts/base.html' %}
-
-{% block content %}
-  <div class="d-flex flex-column align-left gap-3 align-items-center">
-    {% include "components/question.html" with item=question %}
-    {% for answer in answers %}
-      {% include "components/answer.html" with likes_count=answer.likes_count dislikes_count=answer.dislikes_count %}
-    {% endfor %}
-    {% include 'components/pagination.html' %}
-    <div class="container">
-      <div class="row">
-        <div class="col-2">
-          <p>Your answer:</p>
+{% extends 'layouts/base.html' %} {% block content %}
+<div class="d-flex flex-column align-left gap-3 align-items-center">
+  <style>
+    .myans{
+    box-shadow: -6px -6px 8px -4px rgb(255,0,0),
+            6px -6px 8px -4px rgb(0,255,0),
+            6px 6px 8px -4px rgb(255,255,0),
+            -6px 6px 8px -4px rgb(0,0,255);}
+  </style>
+  {% include "components/question.html" with item=question %}
+  {% for answer in answers %}
+  {% include "components/answer.html" with likes_count=answer.likes_count dislikes_count=answer.dislikes_count is_marked=answer.myans %}
+  {% endfor %}
+  <button id="hideonclick" class="btn btn-primary">
+    <i class="bi-lightbulb"></i> You can answer!
+  </button>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var button = document.getElementById("hideonclick");
+      var forma = document.getElementById("forma");
+      button.addEventListener("click", function () {
+        {% if user.is_authenticated %}
+        button.style.display = "none";
+        forma.style.display="block"
+        {% else %}
+        var currentUrl = window.location.href;
+        var encodedUrl = encodeURIComponent(currentUrl);
+        var loginUrl = "{% url 'login' %}?next=" + encodedUrl;
+        window.location.href = loginUrl;
+        {% endif %}
+      });
+    });
+  </script>
+  <div class="container" id="forma" style="display:none">
+    <h1 style="margin-top:30px; margin-bottom: 30px">Impress anyone with your brilliant answer!</h1>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-2">
+              <p>Your answer:</p>
+            </div>
+            <div class="col-8">
+              <textarea class="form-control" name="answer"></textarea>
+            </div>
         </div>
-        <div class="col-8">
-          <textarea class="form-control"></textarea>
+        <div class="row">
+            <div class="col-2">
+                <button type="submit" class="btn btn-success">
+                  <i class="bi-check-lg"></i> Post!
+                </button>
+            </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-2">
-          <button class="btn btn-success"><i class="bi-check-lg"></i>Post!</button>
-        </div>
-      </div>
-    </div>
+    </form>
   </div>
+  {% include 'components/pagination.html' %}
+</div>
 {% endblock %}

@@ -2,7 +2,7 @@
 <div class="card mb-3 me-5 d-flex flex-row justify-content-between">
 
   <div class="d-flex flex-column gap-2 align-items-center ms-2" style="width:25%">
-    <img class="m-2 rounded" src="{% static 'img' %}/{{ item.image_path }}" style="max-width:90%; object-fit:cover" />
+    <img class="m-2 rounded" src="{{ MEDIA_URL }}{{ item.image }}" style="max-width:90%; object-fit:cover" />
   </div>
 
   <div class="d-flex flex-column">

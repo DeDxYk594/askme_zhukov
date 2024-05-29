@@ -2,7 +2,7 @@
 <div class="d-flex flex-row justify-content-between border rounded" style="width:100%; padding:15px">
 
   <div class="d-flex flex-column align-items-begin me-5 flex-grow-1 gap-2" style="max-width:40%">
-    <img src="{% static 'img' %}/{{ item.image_path }}"
+    <img src="{{ MEDIA_URL }}{{ item.image }}"
         style="max-width:90%; object-fit:cover"
         class="display-block rounded" />
       {% include "components/rating.html" with likes_count=item.rating_likes dislikes_count=item.rating_dislikes %}

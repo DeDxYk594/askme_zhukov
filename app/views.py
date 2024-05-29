@@ -7,9 +7,10 @@ from django.contrib.auth.decorators import login_required
 from .models import Question, Answer, User, Tag
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
-from .forms import LoginForm, AskForm
+from .forms import LoginForm, AskForm, AnswerForm, RegisterForm, SettingsForm
 from django.forms.models import model_to_dict
 import json
+import django.contrib.auth.models
 
 
 def paginate(data, request: HttpRequest, dataPerPage: int = 5) -> tuple[list, dict]:
@@ -86,12 +87,26 @@ def tag(request, tag_id):
     return render(request, "index.html", context)
 
 
-def question(request, question_id):
+def question(request: HttpRequest, question_id):
     try:
         q = Question.objects.get(pk=question_id)
     except ZeroDivisionError:
         raise Http404()
-    answers = Answer.objects.answers_for_question(q)
+
+    if request.method == "POST":
+        form = AnswerForm(request.POST)
+        if form.is_valid():
+            answer_text = form.cleaned_data["answer"]
+            if len(answer_text) != 0:
+                ans = Answer(
+                    question_to=q,
+                    text=answer_text,
+                    user_author=User.objects.get(django_user=request.user),
+                )
+                ans.save()
+                return redirect("question", question_id=question_id)
+
+    answers = Answer.objects.answers_for_question(q, user=request.user)
     page_obj, pagination = paginate(answers, request, 5)
     context = {
         "question": q,
@@ -102,15 +117,101 @@ def question(request, question_id):
     return render(request, "question.html", context)
 
 
-def settings(request):
-    return render(request, "settings.html")
+@login_required(login_url="/login")
+def settings(request: HttpRequest):
+    askme_user = User.objects.get(django_user=request.user)
+    if request.method == "POST":
+        form = SettingsForm(request.POST, request.FILES)
+        form.is_valid()
+        if form.cleaned_data.get("password"):
+            if form.cleaned_data.get("password") and form.cleaned_data.get(
+                "repeat_password"
+            ):
+                if form.cleaned_data.get("password") != form.cleaned_data.get(
+                    "repeat_password"
+                ):
+                    form.add_error("repeat_password", "Passwords dont match")
+            else:
+                form.add_error("repeat_password", "Should input password twice")
+        else:
+            if form.cleaned_data.get("repeat_password"):
+                form.add_error("password", "Should input password twice")
+
+        if (
+            form.cleaned_data.get("username")
+            and form.cleaned_data.get("username") != request.user.username
+        ):
+            if django.contrib.auth.models.User.objects.filter(
+                username=form.cleaned_data["username"]
+            ).count():
+                form.add_error("username", "This username is already used")
+        if (
+            form.cleaned_data.get("email")
+            and form.cleaned_data.get("email") != request.user.email
+        ):
+            if django.contrib.auth.models.User.objects.filter(
+                email=form.cleaned_data["email"]
+            ).count():
+                form.add_error("email", "This email is already used")
+        if(form.is_valid()):
+            request.user.username=form.cleaned_data.get("username")
+            request.user.email=form.cleaned_data.get("email")
+            if(form.cleaned_data.get("password")):
+                request.user.set_password(form.cleaned_data.get("password"))
+            request.user.save()
+            if(form.cleaned_data.get("avatar")):
+                askme_user.avatar=form.cleaned_data.get("avatar")
+                askme_user.save()
+            return render(request, "settings.html", {"askme_user": askme_user,"settings_success":True})
+        return render(request, "settings.html", {"askme_user": askme_user,"form":form})
 
 
-def register(request):
-    return render(request, "register.html")
+    else:
+        return render(request, "settings.html", {"askme_user": askme_user})
 
 
-def login_view(request):
+def register(request: HttpRequest):
+    if request.method == "POST":
+        form = RegisterForm(request.POST, request.FILES)
+        form.is_valid()
+        if form.cleaned_data.get("username"):
+            if django.contrib.auth.models.User.objects.filter(
+                username=form.cleaned_data["username"]
+            ).count():
+                form.add_error("username", "This username is already used")
+        if form.cleaned_data.get("email"):
+            if django.contrib.auth.models.User.objects.filter(
+                email=form.cleaned_data["email"]
+            ).count():
+                form.add_error("email", "This email is already used")
+        if form.cleaned_data.get("password") and form.cleaned_data.get(
+            "repeat_password"
+        ):
+            if form.cleaned_data["password"] != form.cleaned_data["repeat_password"]:
+                form.add_error("repeat_password", "Passwords not match")
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            email = form.cleaned_data["email"]
+            password = form.cleaned_data["password"]
+            newDjangoUser = django.contrib.auth.models.User(
+                username=username,
+                email=email,
+                password=password,
+            )
+            newDjangoUser.save()
+            newUser = User(
+                django_user=newDjangoUser, avatar=form.cleaned_data["avatar"]
+            )
+            newUser.save()
+            login(request, newDjangoUser)
+            return redirect("index")
+
+        return render(request, "register.html", context={"form": form})
+    else:
+        return render(request, "register.html")
+
+
+def login_view(request: HttpRequest):
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -130,7 +231,7 @@ def login_view(request):
     return render(request, "login.html", context={"form": form})
 
 
-def logout_view(request):
+def logout_view(request: HttpRequest):
     logout(request)
     if request.GET.get("next"):
         return redirect(request.GET.get("next"))
@@ -138,12 +239,24 @@ def logout_view(request):
 
 
 @login_required(login_url="/login")
-def ask(request):
+def ask(request: HttpRequest):
     if request.method == "POST":
-        form = AskForm(request.POST)
-        print(form.title)
-        return render(request, "ask.html", context={"all_tags": Tag.objects.all()})
-    elif request.method == "GET":
-        return render(request, "ask.html", context={"all_tags": Tag.objects.all()})
+        form = AskForm(request.POST, request.FILES)
+        form.is_valid()
+        tags = Tag.objects.resolve_from_form(form)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            text = form.cleaned_data["text"]
+            image = form.cleaned_data["image"]
+            askme_user = User.objects.get(django_user=request.user)
+            newQuestion = Question(
+                user_author=askme_user, title=title, text=text, image=image
+            )
+            newQuestion.save()
+            newQuestion.tags.set(tags)
+            return redirect("question", newQuestion.pk)
+        return render(
+            request, "ask.html", context={"all_tags": Tag.objects.all(), "form": form}
+        )
     else:
-        return Http404(request)
+        return render(request, "ask.html", context={"all_tags": Tag.objects.all()})

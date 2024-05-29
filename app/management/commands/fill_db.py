@@ -14,6 +14,7 @@ from tqdm import tqdm
 from faker import Faker
 import random
 from app.utils import chunks, recalculateRating, slugify
+from django.core.files.images import ImageFile
 
 with open("app/management/commands/allicons.txt") as f:
     ALL_ICONS = [i.strip().replace("\x00", "") for i in f.readlines()]
@@ -61,7 +62,10 @@ If ratio <= 50, there can be less freakin data created
 
         print("Start generate those users (not django, but our users)...")
         users = [
-            User(django_user=django_user, avatar_path=f"{random.randrange(20)}.jpg")
+            User(
+                django_user=django_user,
+                avatar=ImageFile(open(f"static/img/{random.randrange(20)}.jpg", "rb")),
+            )
             for django_user in tqdm(django_users)
         ]
 
@@ -95,19 +99,25 @@ If ratio <= 50, there can be less freakin data created
                 user_author=random.choice(users),
                 title=" ".join([faker_buddy.name() for _ in range(5)]) + "?",
                 text=faker_buddy.text(),
-                image_path=random.choice(
-                    [
-                        "lathe.png",
-                        "good.jpg",
-                        "lada.png",
-                        "putin.jpg",
-                        "schlucker.jpg",
-                        "president.jpg",
-                        "skala.jpg",
-                        "stress.jpg",
-                        "metlin.jpg",
-                        "fire.jpg",
-                    ]
+                image=ImageFile(
+                    open(
+                        "static/img/"
+                        + random.choice(
+                            [
+                                "lathe.png",
+                                "good.jpg",
+                                "lada.png",
+                                "putin.jpg",
+                                "schlucker.jpg",
+                                "president.jpg",
+                                "skala.jpg",
+                                "stress.jpg",
+                                "metlin.jpg",
+                                "fire.jpg",
+                            ]
+                        ),
+                        "rb",
+                    )
                 ),
             )
             for __ in tqdm(range(10 * ratio))

@@ -1,50 +1,104 @@
 
-{% extends 'layouts/base.html' %} 
-{% block content %} 
+{% extends 'layouts/base.html' %}
+{% block content %}
 {% load static %}
-<h1 class="mb-5">Settings: Dr. Pepper</h1>
+<h1 class="mb-5">Settings: {{ user.username }}</h1>
 <div class="container">
-  <div class="row mb-3">
-    <div class="col-3">
-      Login
-    </div>
-    <div class="col-9">
-      <input type="text" class="form-control" />
-    </div>
-  </div>
-
-  <div class="row mb-3">
-    <div class="col-3">
-      Email
-    </div>
-    <div class="col-9">
-      <input type="text" class="form-control" />
-    </div>
-  </div>
-
-  <div class="row mb-3">
-    <div class="col-3">
-      NickName
-    </div>
-    <div class="col-9">
-      <input type="text" class="form-control" />
-    </div>
-  </div>
-
-  <div class="row mb-3">
-    <div class="col-3">
-      Upload avatar
-    </div>
-    <div class="col-9 d-flex flex-column">
-      <img src="{% static 'img' %}/president.jpg" width="200"/>
-      <input type="file" class="form-control" />
-    </div>
-  </div>
-
+  {% if form.errors %}
   <div class="row">
-    <div class="col-2">
-      <button class="btn btn-outline-success"><i class="bi-check-lg"></i> Save!</button>
+    <div class="alert alert-danger" role="alert">
+      {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+          <p>{{ field }}: {{ error }}</p>
+        {% endfor %}
+      {% endfor %}
     </div>
   </div>
+  {% endif %}
+  {% if settings_success %}
+  <div class="row">
+    <div class="alert alert-success" role="success">
+      Account settings updated successfully!
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" enctype='multipart/form-data'>
+    {% csrf_token %}
+    <div class="row mb-3">
+      <div class="col-3">
+        Username
+      </div>
+      <div class="col-6">
+        <input type="text" class="form-control{% if form.username.errors %} is-invalid{% endif %}" name="username" value="{{ user.username }}" />
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-3">
+        Email
+      </div>
+      <div class="col-6">
+        <input type="text" class="form-control{% if form.email.errors %} is-invalid{% endif %}" name="email" value="{{ user.email }}" />
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-3">
+        Upload new avatar
+      </div>
+      <div class="col-6 d-flex flex-column">
+        <input type="file" name="avatar" class="form-control{% if form.avatar.errors %} is-invalid{% endif %}" />
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-3">
+        Change password
+      </div>
+      <div class="col-6">
+        <input type="password" name="password" value="{{ form.password.value|default:'' }}" class="form-control{% if form.password.errors %} is-invalid{% endif %}" id="passwd1" />
+      </div>
+      <div class="col-1">
+        <h3><i class="bi-eye" style="cursor:pointer" id="eyeicon"></i></h3>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-3">
+        Repeat password
+      </div>
+      <div class="col-6">
+        <input type="password" name="repeat_password" value="{{ form.repeat_password.value|default:'' }}" class="form-control{% if form.repeat_password.errors %} is-invalid{% endif %}" id="passwd2" />
+      </div>
+    </div>
+
+    <div class="row mt-5">
+      <div class="col-2">
+        <button class="btn btn-success" type="submit"><i class="bi-check-lg"></i> Save!</button>
+      </div>
+    </div>
+  </form>
+
+  <script>
+    var passfield1 = document.getElementById("passwd1");
+    var passfield2 = document.getElementById("passwd2");
+    var eyeicon=document.getElementById("eyeicon")
+    function Toggle() {
+      if (passfield1.type === "password") {
+          passfield1.type = "text";
+          passfield2.type = "text";
+          eyeicon.classList.remove("bi-eye")
+          eyeicon.classList.add("bi-eye-slash")
+      }
+      else {
+          passfield1.type = "password";
+          passfield2.type = "password";
+          eyeicon.classList.remove("bi-eye-slash")
+          eyeicon.classList.add("bi-eye")
+      }
+    }
+    eyeicon.addEventListener("click",()=>{Toggle()})
+  </script>
 </div>
 {% endblock %}

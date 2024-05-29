@@ -1,5 +1,6 @@
 from django.db import models
 import django.contrib.auth.models
+import django.forms
 
 
 class TagManager(models.Manager):
@@ -9,6 +10,19 @@ class TagManager(models.Manager):
 
     def tops(self):
         return self.order_by("-rating_questions")
+
+    def resolve_from_form(self, form: django.forms.Form):
+        ret = []
+        if form.cleaned_data.get("tags"):
+            rawTags = form.cleaned_data.get("tags").split(",")
+            for rt in rawTags:
+                if Tag.objects.filter(slug=rt).count():
+                    ret.append(Tag.objects.get(slug=rt))
+                else:
+                    form.add_error("tags", f"Tag doesnt exist: {rt}")
+        else:
+            form.add_error("tags", "Invalid tags, they are required")
+        return ret
 
 
 class UserManager(models.Manager):
@@ -99,17 +113,28 @@ class AnswerManager(models.Manager):
             ),
         )
 
-    def answers_for_question(self, question):
-        return (
-            self.filter(question_to=question)
-            .annotate(
-                rating_points=models.ExpressionWrapper(
-                    models.F("rating_likes") * 100 - models.F("rating_dislikes") * 200,
-                    output_field=models.BigIntegerField(),
-                )
+    def answers_for_question(self, question, user=None):
+        basic = self.filter(question_to=question).annotate(
+            rating_points=models.ExpressionWrapper(
+                models.F("rating_likes") * 100 - models.F("rating_dislikes") * 200,
+                output_field=models.BigIntegerField(),
             )
-            .order_by("-rating_points")
         )
+        if user and not user.is_anonymous:
+            real_user = User.objects.get(django_user=user)
+            return (
+                basic.annotate(
+                    myans=models.Case(
+                        models.When(user_author=real_user, then=1),
+                        default=0,
+                        output_field=models.IntegerField(),
+                    )
+                )
+                .order_by("-rating_points")
+                .order_by("-myans")
+            )
+        else:
+            return basic.annotate(myans=models.Value(0)).order_by("-rating_points")
 
 
 class Tag(models.Model):
@@ -131,7 +156,7 @@ class User(models.Model):
     django_user = models.OneToOneField(
         django.contrib.auth.models.User, on_delete=models.CASCADE
     )
-    avatar_path = models.TextField(max_length=300)
+    avatar = models.ImageField(max_length=300, upload_to="")
     rating_likes = models.BigIntegerField(default=0)
     rating_dislikes = models.BigIntegerField(default=0)
     rating_questions = models.BigIntegerField(default=0)
@@ -149,7 +174,7 @@ class Question(models.Model):
     tags = models.ManyToManyField(Tag)
     title = models.TextField(max_length=200)
     text = models.TextField(max_length=2000)
-    image_path = models.TextField(max_length=300)  # TODO Сделать ImageField
+    image = models.ImageField(max_length=300)
     rating_likes = models.BigIntegerField(default=0)
     rating_dislikes = models.BigIntegerField(default=0)
     rating_answers = models.BigIntegerField(default=0)
